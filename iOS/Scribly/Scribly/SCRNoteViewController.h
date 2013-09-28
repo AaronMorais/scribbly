@@ -7,7 +7,10 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "SCRNoteManager.h"
 
 @interface SCRNoteViewController : UIViewController
+
+@property (nonatomic, retain) SCRNoteManager *noteManager;
 
 @end

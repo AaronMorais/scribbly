@@ -23,6 +23,9 @@
 		9367236C17F7751A00CE0209 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 9367236A17F7751A00CE0209 /* InfoPlist.strings */; };
 		9367236E17F7751A00CE0209 /* ScriblyTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 9367236D17F7751A00CE0209 /* ScriblyTests.m */; };
 		9367237917F775C500CE0209 /* SCRNoteViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 9367237817F775C500CE0209 /* SCRNoteViewController.m */; };
+		9367238817F77DF400CE0209 /* NoteCategory.m in Sources */ = {isa = PBXBuildFile; fileRef = 9367238717F77DF400CE0209 /* NoteCategory.m */; };
+		9367238B17F77E2100CE0209 /* SCRNoteManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 9367238A17F77E2100CE0209 /* SCRNoteManager.m */; };
+		9367238E17F7849700CE0209 /* Note.m in Sources */ = {isa = PBXBuildFile; fileRef = 9367238D17F7849700CE0209 /* Note.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -56,6 +59,12 @@
 		9367236D17F7751A00CE0209 /* ScriblyTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ScriblyTests.m; sourceTree = "<group>"; };
 		9367237717F775C500CE0209 /* SCRNoteViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SCRNoteViewController.h; sourceTree = "<group>"; };
 		9367237817F775C500CE0209 /* SCRNoteViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SCRNoteViewController.m; sourceTree = "<group>"; };
+		9367238617F77DF400CE0209 /* NoteCategory.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = NoteCategory.h; path = ../NoteCategory.h; sourceTree = "<group>"; };
+		9367238717F77DF400CE0209 /* NoteCategory.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = NoteCategory.m; path = ../NoteCategory.m; sourceTree = "<group>"; };
+		9367238917F77E2100CE0209 /* SCRNoteManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SCRNoteManager.h; sourceTree = "<group>"; };
+		9367238A17F77E2100CE0209 /* SCRNoteManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SCRNoteManager.m; sourceTree = "<group>"; };
+		9367238C17F7849700CE0209 /* Note.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Note.h; path = ../Note.h; sourceTree = "<group>"; };
+		9367238D17F7849700CE0209 /* Note.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = Note.m; path = ../Note.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -124,6 +133,12 @@
 				9367237817F775C500CE0209 /* SCRNoteViewController.m */,
 				9367235917F7751A00CE0209 /* Images.xcassets */,
 				9367235617F7751A00CE0209 /* Scribly.xcdatamodeld */,
+				9367238917F77E2100CE0209 /* SCRNoteManager.h */,
+				9367238A17F77E2100CE0209 /* SCRNoteManager.m */,
+				9367238617F77DF400CE0209 /* NoteCategory.h */,
+				9367238717F77DF400CE0209 /* NoteCategory.m */,
+				9367238C17F7849700CE0209 /* Note.h */,
+				9367238D17F7849700CE0209 /* Note.m */,
 				9367234B17F7751A00CE0209 /* Supporting Files */,
 			);
 			path = Scribly;
@@ -254,9 +269,12 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9367238817F77DF400CE0209 /* NoteCategory.m in Sources */,
 				9367235817F7751A00CE0209 /* Scribly.xcdatamodeld in Sources */,
 				9367235117F7751A00CE0209 /* main.m in Sources */,
 				9367235517F7751A00CE0209 /* SCRAppDelegate.m in Sources */,
+				9367238B17F77E2100CE0209 /* SCRNoteManager.m in Sources */,
+				9367238E17F7849700CE0209 /* Note.m in Sources */,
 				9367237917F775C500CE0209 /* SCRNoteViewController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
