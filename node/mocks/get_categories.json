@@ -1,0 +1,9 @@
+{
+    "categories": [{
+        "name": "Movies",
+        "score": "1"
+    }, {
+        "name": "Arts & Entertainment",
+        "score": "0.5"
+    }],
+}
