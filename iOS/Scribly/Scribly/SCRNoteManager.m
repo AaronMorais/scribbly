@@ -32,7 +32,7 @@ static SCRNoteManager *sharedSingleton;
     Note *newEntry = [NSEntityDescription insertNewObjectForEntityForName:@"Note"
                                                     inManagedObjectContext:self.managedObjectContext];
     newEntry.text = text;
-    newEntry.id = ID;
+    newEntry.identifier = ID;
     
     NSError *error;
     if (![self.managedObjectContext save:&error]) {
@@ -43,7 +43,7 @@ static SCRNoteManager *sharedSingleton;
 - (void)updateNote:(NSNumber *)ID WithText:(NSString *)text {
     NSFetchRequest *request = [[NSFetchRequest alloc] init];
     [request setEntity:[NSEntityDescription entityForName:@"Note" inManagedObjectContext:self.managedObjectContext]];
-    NSPredicate *predicate = [NSPredicate predicateWithFormat:@"id == %@", ID];
+    NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == %@", ID];
     [request setPredicate:predicate];
     NSError *error = nil;
     NSArray *results = [self.managedObjectContext executeFetchRequest:request error:&error];
@@ -58,7 +58,7 @@ static SCRNoteManager *sharedSingleton;
 - (void)addCategoryWithID:(NSNumber *)ID WithName:(NSString *)name WithScore:(NSNumber *)score {
     NoteCategory *newEntry = [NSEntityDescription insertNewObjectForEntityForName:@"NoteCategory"
                                                     inManagedObjectContext:self.managedObjectContext];
-    newEntry.id = ID;
+    newEntry.identifier = ID;
     newEntry.name = name;
     newEntry.score = score;
     

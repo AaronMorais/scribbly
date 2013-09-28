@@ -1,5 +1,5 @@
 //
-//  Category.h
+//  Note.h
 //  Scribly
 //
 //  Created by Aaron Morais on 2013-09-28.
@@ -10,10 +10,9 @@
 #import <CoreData/CoreData.h>
 
 
-@interface NoteCategory : NSManagedObject
+@interface Note : NSManagedObject
 
+@property (nonatomic, retain) NSString * text;
 @property (nonatomic, retain) NSNumber * identifier;
-@property (nonatomic, retain) NSString * name;
-@property (nonatomic, retain) NSNumber * score;
 
 @end

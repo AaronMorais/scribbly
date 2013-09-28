@@ -8,9 +8,15 @@
 
 #import <UIKit/UIKit.h>
 #import "SCRNoteManager.h"
+#import "SCRNoteGridView.h"
 
-@interface SCRNoteViewController : UIViewController
+@interface SCRNoteViewController : UIViewController <UIScrollViewDelegate, SCRNoteGridViewProtocol>
 
 @property (nonatomic, retain) SCRNoteManager *noteManager;
+
+@property (nonatomic, retain) UIScrollView *scrollView;
+@property (nonatomic, retain) UIView *headerView;
+@property (nonatomic, retain) SCRNoteGridView *categoryView;
+@property (nonatomic, retain) UILabel *releaseText;
 
 @end
