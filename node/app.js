@@ -12,4 +12,6 @@ var express = require("express");
 
 var app = express();
 
-app.get("/save_note", require("save_note"));
+app.get("/save_note", require("./saveNote"));
+
+app.listen(3000);
