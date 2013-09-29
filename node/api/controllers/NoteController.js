@@ -81,6 +81,7 @@ module.exports = {
                 for (var x in noteCategories) {
                     Category.createIfNotExists(noteCategories[x]);
                 }
+                Category.createIfNotExists("Uncategorized");
 
                 if (id) {
                     Note.findOne(id).done(function(err, note) {
@@ -88,8 +89,8 @@ module.exports = {
 
                         note.text = text;
                         note.primaryCategory = noteCategories[0] || "Uncategorized";
-                        note.secondaryCategory = noteCategories[1] || "Uncategorized";
-                        note.tertiaryCategory = noteCategories[2] || "Uncategorized";
+                        note.secondaryCategory = noteCategories[1] || "None";
+                        note.tertiaryCategory = noteCategories[2] || "None";
                         note.save(function() {});
 
                         res.send(note);
@@ -100,8 +101,8 @@ module.exports = {
                         text: text,
                         user: user.id,
                         primaryCategory: noteCategories[0] || "Uncategorized",
-                        secondaryCategory: noteCategories[1] || "Uncategorized",
-                        tertiaryCategory: noteCategories[2] || "Uncategorized"
+                        secondaryCategory: noteCategories[1] || "None",
+                        tertiaryCategory: noteCategories[2] || "None"
                     }).done(function(err, note) {
                         if (err) console.log(util.inspect(err, false, null));
                         
@@ -111,7 +112,43 @@ module.exports = {
                 }
             });            
         });
+    },
 
+    search: function(req, res) {
+        res.type("json");
+
+        var userToken = req.param('token');
+        var query = req.param('query');
+
+        if (!userToken || !query) {res.send({error: "Invalid request!"}); return;}
+
+        User.findOne({
+            token: userToken
+        }).done(function(err, user) {
+            if (err) console.log(util.inspect(err, false, null));
+
+            if (!user) {res.send({error: "Invalid token!"}); return;}
+
+            SynonymToNote.find().done(function(err, stns) {
+                var notes = [];
+
+                var finish = function() {
+                    res.send(notes);
+                }
+
+                for (var x in stns) {
+                    (function(stn, index) {
+                        Note.findOne({id: stn.note, user: user.id}).done(function(err, note) {
+                            if (note && (stn.synonym.indexOf(query) != -1 || note.text.indexOf(query) != -1) && !_.findWhere(notes, {id: note.id}))
+                                notes.push(note);
+                            if (index == stns.length-1) {
+                                finish();
+                            }
+                        });
+                    })(stns[x], x);
+                }
+            })
+        });
     }
 
 };
@@ -125,10 +162,16 @@ var updateSynonyms = function(noteID, text) {
 
         SynonymToNote.createIfNotExists(words[x], noteID);
         request('http://words.bighugelabs.com/api/2/d4cdac4c477579e2e31e0d2b90b8e903/' + words[x] + '/json', function(err, resp, body) {
-            var body = JSON.parse(body);
+            try {
+                var body = JSON.parse(body);
+            } catch (e) {
+                console.log('failed to look up a word');
+                return;
+            }
             var synonyms = [];
             if (body.noun) synonyms = _.union(synonyms, body.noun.syn);
             if (body.verb) synonyms = _.union(synonyms, body.verb.syn);
+            if (body.adjective) synonyms = _.union(synonyms, body.adjective.syn);
 
 
             for (var y in synonyms) {
