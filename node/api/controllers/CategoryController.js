@@ -54,6 +54,8 @@ module.exports = {
 
         var userToken = req.param('token');
 
+        console.log(userToken);
+
         if (!userToken) {res.send({error: "Invalid request!"}); return;}
 
         var cats = [];
