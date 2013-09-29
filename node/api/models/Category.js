@@ -21,7 +21,15 @@ module.exports = {
         viewCount: {
             type: "INT",
             defaultsTo: 0
-        }
+        },
+
+        toJSON: function() {
+            var obj = this.toObject();
+            obj.score = parseInt(obj.score);
+            obj.viewCount = parseInt(obj.score);
+
+            return obj;
+        },
     },
 
     createIfNotExists: function(name) {

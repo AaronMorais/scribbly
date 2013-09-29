@@ -27,6 +27,11 @@ module.exports = {
         tertiaryCategory: {
             type: "string",
             required: true
+        },
+        toJSON: function() {
+            var obj = this.toObject();
+            obj.user = parseInt(obj.user);
+            return obj;
         }
     },
 

@@ -16,6 +16,11 @@ module.exports = {
         note: {
             type: "int",
             required: true
+        },
+        toJSON: function() {
+            var obj = this.toObject();
+            obj.note = parseInt(obj.note);
+            return obj;
         }
     },
 
