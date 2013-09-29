@@ -108,7 +108,7 @@
     NSString *token = [prefs objectForKey:@"userToken"];
     AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
     NSDictionary *params = @{@"token":token};
-    [manager GET:@"http://kevinbedi.com:9321/category/all" parameters:params success:^(AFHTTPRequestOperation *operation, id responseObject) {
+    [manager GET:@"http://10.101.30.230:1337/category/all" parameters:params success:^(AFHTTPRequestOperation *operation, id responseObject) {
         [[SCRNoteManager sharedSingleton] clearCategories];
         NSArray *jsonResponseObject = (NSArray *)responseObject;
         for (NSDictionary *jsonCategory in jsonResponseObject) {

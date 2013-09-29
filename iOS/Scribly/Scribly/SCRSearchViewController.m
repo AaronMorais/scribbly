@@ -94,7 +94,7 @@
     NSString *token = [prefs objectForKey:@"userToken"];
     AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
     NSDictionary *params = @{@"token":token, @"query":query};
-    [manager GET:@"http://kevinbedi.com:9321/note/search" parameters:params success:^(AFHTTPRequestOperation *operation, id responseObject) {
+    [manager GET:@"http://10.101.30.230:1337/note/search" parameters:params success:^(AFHTTPRequestOperation *operation, id responseObject) {
         [[SCRNoteManager sharedSingleton] clearNotes];
         if ([responseObject isKindOfClass:[NSArray class]]) {
             NSArray *jsonResponseObject = (NSArray *)responseObject;
