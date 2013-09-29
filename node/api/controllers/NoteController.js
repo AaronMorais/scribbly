@@ -139,9 +139,6 @@ module.exports = {
                 for (var x in stns) {
                     (function(stn, index) {
                         Note.findOne({id: stn.note, user: user.id}).done(function(err, note) {
-                            console.log(stn.synonym);
-                            console.log(query);
-                            console.log(note);
                             if (note && (String(stn.synonym).toLowerCase().indexOf(String(query).toLowerCase()) != -1 || String(note.text).toLowerCase().indexOf(String(query).toLowerCase()) != -1) && !_.findWhere(notes, {id: note.id}))
                                 notes.push(note);
                             if (index == stns.length-1) {
@@ -165,22 +162,21 @@ var updateSynonyms = function(noteID, text) {
 
         if (words[x].length < 3) continue;
         SynonymToNote.createIfNotExists(words[x], noteID);
-        // request('http://words.bighugelabs.com/api/2/d4cdac4c477579e2e31e0d2b90b8e903/' + words[x] + '/json', function(err, resp, body) {
-        //     try {
-        //         var body = JSON.parse(body);
-        //     } catch (e) {
-        //         console.log('failed to look up a word');
-        //         return;
-        //     }
-        //     var synonyms = [];
-        //     if (body.noun) synonyms = _.union(synonyms, body.noun.syn);
-        //     if (body.verb) synonyms = _.union(synonyms, body.verb.syn);
-        //     if (body.adjective) synonyms = _.union(synonyms, body.adjective.syn);
+        request('http://words.bighugelabs.com/api/2/d4cdac4c477579e2e31e0d2b90b8e903/' + words[x] + '/json', function(err, resp, body) {
+            try {
+                var body = JSON.parse(body);
+            } catch (e) {
+                return;
+            }
+            var synonyms = [];
+            if (body.noun) synonyms = _.union(synonyms, body.noun.syn);
+            if (body.verb) synonyms = _.union(synonyms, body.verb.syn);
+            if (body.adjective) synonyms = _.union(synonyms, body.adjective.syn);
 
 
-        //     for (var y in synonyms) {
-        //         SynonymToNote.createIfNotExists(synonyms[y], noteID);
-        //     }
-        // });
+            for (var y in synonyms) {
+                SynonymToNote.createIfNotExists(synonyms[y], noteID);
+            }
+        });
     }
 }

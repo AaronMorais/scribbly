@@ -47,15 +47,11 @@ module.exports = {
             var numCategoriesLookedUp = 0;
 
             Category.find().done(function(err, categories) {
-                // console.log(categories);
                 categories = _.filter(categories, function(category) {
-                    // console.log(category.name);
                     return  category.name == note.primaryCategory ||
                             category.name == note.secondaryCategory ||
                             category.name == note.tertiaryCategory
                 });
-                console.log("Note " + id + " had categories:");
-                console.log(categories);
                 cb(categories);
             });
 
