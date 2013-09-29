@@ -10,6 +10,7 @@
 #import "Note.h"
 #import <AFHTTPRequestOperationManager.h>
 #import "SCRNoteManager.h"
+#import "SCRNoteViewController.h"
 
 @interface SCRSearchViewController ()
 
@@ -21,6 +22,7 @@
     self = [super init];
     if (self) {
         self.navigationItem.title = @"Search";
+        self.edgesForExtendedLayout = UIRectEdgeNone;
 
         _tableView = [[UITableView alloc] initWithFrame:[self.view bounds]];
         _tableView.delegate = self;
@@ -31,6 +33,7 @@
                                                                    0.0f,
                                                                    CGRectGetWidth(self.view.frame),
                                                                    44.0f)];
+        
         [[self tableView] setTableHeaderView:[self searchBar]];
         self.notes = [NSArray array];
     
@@ -38,8 +41,15 @@
         self.sDisplayController.delegate = self;
         self.sDisplayController.searchResultsDelegate  = self;
         self.sDisplayController.searchResultsDataSource = self;
+        self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemDone target:self action:@selector(dismissModalViewControllerAnimated:)];
     }
     return self;
+}
+
+- (void)viewDidAppear:(BOOL)animated{
+    [super viewDidAppear:animated];
+    self.tableView.contentInset = UIEdgeInsetsMake(0, 0, 60, 0);
+    self.sDisplayController.searchResultsTableView.contentInset = UIEdgeInsetsMake(0, 0, 60, 0);
 }
 
 #pragma mark - UITableViewDatasource Methods
@@ -55,7 +65,7 @@
 }
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
-
+    [_delegate presentNoteControllerWithNote:self.notes[indexPath.row]];
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
@@ -84,18 +94,17 @@
     NSString *token = [prefs objectForKey:@"userToken"];
     AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
     NSDictionary *params = @{@"token":token, @"query":query};
-    [[manager operationQueue] cancelAllOperations];
     [manager GET:@"http://kevinbedi.com:9321/note/search" parameters:params success:^(AFHTTPRequestOperation *operation, id responseObject) {
         [[SCRNoteManager sharedSingleton] clearNotes];
         if ([responseObject isKindOfClass:[NSArray class]]) {
             NSArray *jsonResponseObject = (NSArray *)responseObject;
             for (NSDictionary *jsonCategory in jsonResponseObject) {
                 if([jsonCategory isKindOfClass:[NSDictionary class]]) {
-                    [[SCRNoteManager sharedSingleton] addNoteWithText:jsonCategory[@"text"] WithID:jsonCategory[@"id"]];
+                    [[SCRNoteManager sharedSingleton] addNoteWithText:jsonCategory[@"text"] WithID:jsonCategory[@"id"] WithCategory:jsonCategory[@"primaryCategory"]];
                 }
             }
         } else if([responseObject isKindOfClass:[NSDictionary class]]) {
-            [[SCRNoteManager sharedSingleton] addNoteWithText:responseObject[@"text"] WithID:responseObject[@"id"]];
+            [[SCRNoteManager sharedSingleton] addNoteWithText:responseObject[@"text"] WithID:responseObject[@"id"] WithCategory:responseObject[@"primaryCategory"]];
         }
         self.notes = [[SCRNoteManager sharedSingleton] getNotes];
         [self.tableView reloadData];

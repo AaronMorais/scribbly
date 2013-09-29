@@ -52,33 +52,19 @@
 - (id)init {
     self = [super init];
     if (self) {
-        _tableView = [[UITableView alloc] initWithFrame:[self.view bounds]];
-        _tableView.delegate = self;
-        _tableView.dataSource = self;
-        [self.view addSubview:[self tableView]];
-        
         self.colors = [NSMutableArray array];
         self.navigationItem.title = @"Categories";
         self.edgesForExtendedLayout = UIRectEdgeNone;
         self.categories = [[SCRNoteManager sharedSingleton] getCategories];
         self.navigationController.navigationBar.tintColor = [UIColor orangeColor];
-        _searchBar = [[UISearchBar alloc] initWithFrame:CGRectMake(0.0f,
-                                                                   0.0f,
-                                                                   CGRectGetWidth(self.view.frame),
-                                                                   44.0f)];
-        [_tableView setTableHeaderView:[self searchBar]];
-        self.notes = [NSArray array];
-    
-        self.sDisplayController = [[UISearchDisplayController alloc] initWithSearchBar:_searchBar contentsController:self];
-        self.sDisplayController.delegate = self;
-        self.sDisplayController.searchResultsDelegate  = self;
-        self.sDisplayController.searchResultsDataSource = self;
     }
     return self;
 }
 
 - (void)viewDidLoad {
     [super viewDidLoad];
+    UIBarButtonItem *searchButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemSearch target:self action:@selector(presentSearchModal)];
+    self.navigationItem.leftBarButtonItem = searchButton;
     RFQuiltLayout *layout = [[RFQuiltLayout alloc] init];
     layout.direction = UICollectionViewScrollDirectionVertical;
     layout.blockPixels = CGSizeMake(106.6, 101);
@@ -91,6 +77,21 @@
     [self.view addSubview:self.collectionView];
     UIBarButtonItem *newButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAdd target:self action:@selector(newNote)];
     self.navigationItem.rightBarButtonItem = newButton;
+}
+
+- (void)presentSearchModal {
+    SCRSearchViewController *searchViewController = [[SCRSearchViewController alloc] init];
+    searchViewController.delegate = self;
+    UINavigationController *searchNavController = [[UINavigationController alloc] initWithRootViewController:searchViewController];
+    searchNavController.modalTransitionStyle = UIModalTransitionStyleCoverVertical;
+    self.searchNavController = searchNavController;
+    [self.navigationController presentViewController:searchNavController animated:YES completion:nil];
+}
+
+- (void)presentNoteControllerWithNote:(Note *)note {
+    [self.searchNavController dismissViewControllerAnimated:YES completion:^{
+        [self.navigationController pushViewController:[[SCRNoteViewController alloc] initWithNote:note] animated:YES];
+    }];
 }
 
 - (void)newNote {
@@ -170,13 +171,13 @@
             [UIColor colorWithRed:230.0f/256.0f green:126.0f/256.0f blue:34.0f/256.0f alpha:1.0f],
             [UIColor colorWithRed:241.0f/256.0f green:196.0f/256.0f blue:15.0f/256.0f alpha:1.0f],
             [UIColor colorWithRed:155.0f/256.f green:89.0f/256.0f blue:182.0f/256.0f alpha:1.0f]];
-    } else (seed % 4 == 1) {
+    } else if(seed % 4 == 1) {
         colors = @[
             [UIColor colorWithRed:192.0f/256.0f green:57.0f/256.0f blue:43.0f/256.0f alpha:1.0f],
             [UIColor colorWithRed:230.0f/256.0f green:126.0f/256.0f blue:34.0f/256.0f alpha:1.0f],
             [UIColor colorWithRed:243.0f/256.0f green:156.0f/256.0f blue:18.0f/256.0f alpha:1.0f],
             [UIColor colorWithRed:142.0f/256.0f green:68.0f/256.0f blue:173.0f/256.0f alpha:1.0f]];
-    } else (seed % 4 == 2) {
+    } else if(seed % 4 == 2) {
         colors = @[
             [UIColor colorWithRed:52.0f/256.0f green:152.0f/256.0f blue:219.0f/256.0f alpha:1.0f],
             [UIColor colorWithRed:46.0f/256.0f green:204.0f/256.0f blue:113.0f/256.0f alpha:1.0f],
@@ -216,85 +217,7 @@
 }
 
 - (UIEdgeInsets)insetsForItemAtIndexPath:(NSIndexPath *)indexPath {
-//    return UIEdgeInsetsMake(1, 1, 1, 1);
     return UIEdgeInsetsZero;
-}
-
-
-#pragma mark - UITableViewDatasource Methods
-
-- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
-{
-    return [self.notes count];
-}
-
-- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
-{
-    return 1;
-}
-
-- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
-
-}
-
-- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
-{
-    static NSString *MyIdentifier = @"MyIdentifier";
-
-    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:MyIdentifier];
-
-    if (cell == nil) {
-        cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault
-                                      reuseIdentifier:MyIdentifier];
-    }
-    if (self.notes && self.notes.count > indexPath.row) {
-        Note *note = [self.notes objectAtIndex:indexPath.row];
-        cell.textLabel.text = note.text;
-    }
-    return cell;
-}
-
-- (NSArray *)notes {
-    return _notes;
-}
-
-- (void)queryForString:(NSString *)query {
-    NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
-    NSString *token = [prefs objectForKey:@"userToken"];
-    AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
-    NSDictionary *params = @{@"token":token, @"query":query};
-    [[manager operationQueue] cancelAllOperations];
-    [manager GET:@"http://kevinbedi.com:9321/note/search" parameters:params success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        [[SCRNoteManager sharedSingleton] clearNotes];
-        if ([responseObject isKindOfClass:[NSArray class]]) {
-            NSArray *jsonResponseObject = (NSArray *)responseObject;
-            for (NSDictionary *jsonCategory in jsonResponseObject) {
-                if([jsonCategory isKindOfClass:[NSDictionary class]]) {
-                    [[SCRNoteManager sharedSingleton] addNoteWithText:jsonCategory[@"text"] WithID:jsonCategory[@"id"]];
-                }
-            }
-        } else if([responseObject isKindOfClass:[NSDictionary class]]) {
-            [[SCRNoteManager sharedSingleton] addNoteWithText:responseObject[@"text"] WithID:responseObject[@"id"]];
-        }
-        self.notes = [[SCRNoteManager sharedSingleton] getNotes];
-        [self.tableView reloadData];
-        [self.sDisplayController.searchResultsTableView reloadData];
-    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-        NSLog(@"Error: %@", error);
-    }];
-}
-
-#pragma mark - UISearchDisplayDelegate Methods
-
-- (void)searchDisplayController:(UISearchDisplayController *)controller didHideSearchResultsTableView:(UITableView *)tableView
- {
-    self.notes = [NSArray array];
-    [self.sDisplayController.searchResultsTableView reloadData];
-}
-
-- (BOOL)searchDisplayController:(UISearchDisplayController *)controller shouldReloadTableForSearchString:(NSString *)searchString {
-    [self queryForString:searchString];
-    return YES;
 }
 
 @end
