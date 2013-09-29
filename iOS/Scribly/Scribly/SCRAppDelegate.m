@@ -23,7 +23,7 @@
     [prefs objectForKey:@"userToken"];
     if (![prefs objectForKey:@"userToken"]) {
         AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
-        [manager GET:@"http://172.21.167.83:1337/user/create" parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
+        [manager GET:@"http://kevinbedi.com:9321/user/create" parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
             NSDictionary *jsonResponseObject = (NSDictionary *)responseObject;
             NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
             [prefs setObject:jsonResponseObject[@"token"] forKey:@"userToken"];

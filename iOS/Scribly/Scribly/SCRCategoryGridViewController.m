@@ -30,7 +30,7 @@
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
-    return 30.0f;
+    return 45.0f;
 }
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
@@ -62,6 +62,12 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     self.navigationController.navigationBar.tintColor = [UIColor blueColor];
+    UIBarButtonItem *newButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAdd target:self action:@selector(newNote)];
+    self.navigationItem.rightBarButtonItem = newButton;
+}
+
+- (void)newNote {
+    [self.navigationController pushViewController:[[SCRNoteViewController alloc] initWithCategory:nil] animated:YES];
 }
 
 - (void)viewWillAppear:(BOOL)animated {
@@ -73,7 +79,7 @@
     NSString *token = [prefs objectForKey:@"userToken"];
     AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
     NSDictionary *params = @{@"token":token};
-    [manager GET:@"http://172.21.167.83:1337/category/all" parameters:params success:^(AFHTTPRequestOperation *operation, id responseObject) {
+    [manager GET:@"http://kevinbedi.com:9321/category/all" parameters:params success:^(AFHTTPRequestOperation *operation, id responseObject) {
         [[SCRNoteManager sharedSingleton] clearCategories];
         NSArray *jsonResponseObject = (NSArray *)responseObject;
         for (NSDictionary *jsonCategory in jsonResponseObject) {

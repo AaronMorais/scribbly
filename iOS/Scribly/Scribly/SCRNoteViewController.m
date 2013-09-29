@@ -53,6 +53,9 @@
 //    self.categoryView.delegate = self;
 //    [self.view addSubview:self.categoryView];
     
+    _newButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAdd target:self action:@selector(newNote)];
+    self.navigationItem.rightBarButtonItem = _newButton;
+    
     self.scrollView = [[UIScrollView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height)];
     self.scrollView.delegate = self;
     self.scrollView.bounces = YES;
@@ -90,12 +93,22 @@
     [self.view setNeedsLayout];
 }
 
+- (void)newNote {
+    self.note = nil;
+    self.category = nil;
+    self.requestedNoteID = NO;
+    self.textView.text = @"";
+    self.navigationItem.title = @"Notes";
+    [self showNotes:YES Animated:YES];
+    [self.textView becomeFirstResponder];
+}
+
 - (void)viewWillAppear:(BOOL)animated {
     [self refresh];
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
-    return 30.0f;
+    return 45.0f;
 }
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
@@ -160,13 +173,13 @@
     NSString *token = [prefs objectForKey:@"userToken"];
     AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
     NSDictionary *params;
-    if (self.note) {
+    if (self.note && self.note.identifier) {
         params = @{@"token":token, @"text":self.textView.text, @"id":self.note.identifier};
     } else {
         params = @{@"token":token, @"text":self.textView.text};
     }
     if (!self.requestedNoteID || self.note) {
-        [manager GET:@"http://172.21.167.83:1337/note/save" parameters:params success:^(AFHTTPRequestOperation *operation, id responseObject) {
+        [manager GET:@"http://kevinbedi.com:9321/note/save" parameters:params success:^(AFHTTPRequestOperation *operation, id responseObject) {
             [[SCRNoteManager sharedSingleton] addNoteWithText:responseObject[@"text"] WithID:responseObject[@"id"]];
             Note *note = [[SCRNoteManager sharedSingleton] getNoteWithID:responseObject[@"id"]];
             if (!self.note && note) {
@@ -185,7 +198,7 @@
 }
 
 - (void)textViewDidEndEditing:(UITextView *)textView {
-    self.navigationItem.rightBarButtonItem = nil;
+    self.navigationItem.rightBarButtonItem = _newButton;
     CGSize textHeight = [textView sizeThatFits:CGSizeMake(self.view.frame.size.width, INT_MAX)];
     self.textView.frame = CGRectMake(0, 0, self.view.frame.size.width, textHeight.height);
     self.scrollView.contentSize = CGSizeMake(self.view.frame.size.width, MAX(textHeight.height, self.scrollView.contentSize.height + 100));
@@ -208,12 +221,12 @@
 }
 
 - (void)refresh {
-    if (self.category) {
+    if (self.category && self.category.name) {
         NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
         NSString *token = [prefs objectForKey:@"userToken"];
         AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
         NSDictionary *params = @{@"token":token, @"name":self.category.name};
-        [manager GET:@"http://172.21.167.83:1337/category/notes" parameters:params success:^(AFHTTPRequestOperation *operation, id responseObject) {
+        [manager GET:@"http://kevinbedi.com:9321/category/notes" parameters:params success:^(AFHTTPRequestOperation *operation, id responseObject) {
             [[SCRNoteManager sharedSingleton] clearNotes];
             NSArray *jsonResponseObject = (NSArray *)responseObject;
             for (NSDictionary *jsonCategory in jsonResponseObject) {
