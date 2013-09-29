@@ -148,18 +148,22 @@
 
 - (UIColor *)randomFlatColorWithSeed:(NSInteger)seed {
     NSArray *colors;
-    if (seed % 2 == 0) {
+    if (seed % 4 == 0) {
         colors = @[
-            [UIColor colorWithRed:192.0f/256.0f green:57.0f/256.0f blue:43.0f/256.0f alpha:1.0f],
-            [UIColor colorWithRed:230.0f/256.0f green:126.0f/256.0f blue:34.0f/256.0f alpha:1.0f],
             [UIColor colorWithRed:52.0f/256.0f green:73.0f/256.0f blue:94.0f/256.0f alpha:1.0f],
             [UIColor colorWithRed:39.0f/256.f green:174.0f/256.0f blue:96.0f/256.0f alpha:1.0f]];
+    } else (seed % 4 == 1) {
+        colors = @[
+            [UIColor colorWithRed:41.0f/256.0f green:128.0f/256.0f blue:185.0f/256.0f alpha:1.0f],
+            [UIColor colorWithRed:46.0f/256.0f green:204.0f/256.0f blue:113.0f/256.0f alpha:1.0f]];
+    } else (seed % 4 == 2) {
+        colors = @[
+            [UIColor colorWithRed:192.0f/256.0f green:57.0f/256.0f blue:43.0f/256.0f alpha:1.0f],
+            [UIColor colorWithRed:230.0f/256.0f green:126.0f/256.0f blue:34.0f/256.0f alpha:1.0f];    
     } else {
         colors = @[
             [UIColor colorWithRed:44.0f/256.0f green:62.0f/256.0f blue:80.0f/256.0f alpha:1.0f],
             [UIColor colorWithRed:52.0f/256.0f green:152.0f/256.0f blue:219.0f/256.0f alpha:1.0f],
-            [UIColor colorWithRed:41.0f/256.0f green:128.0f/256.0f blue:185.0f/256.0f alpha:1.0f],
-            [UIColor colorWithRed:46.0f/256.0f green:204.0f/256.0f blue:113.0f/256.0f alpha:1.0f]];
     }
     uint32_t rnd = arc4random_uniform([colors count]);
     return [colors objectAtIndex:rnd];
