@@ -7,6 +7,7 @@
  */
 
 var util = require("util");
+var yql = require("yql");
 
 module.exports = {
     attributes: {
@@ -22,6 +23,9 @@ module.exports = {
             type: "INT",
             defaultsTo: 0
         },
+        image: {
+            type: "STRING"
+        },
 
         toJSON: function() {
             var obj = this.toObject();
@@ -35,7 +39,18 @@ module.exports = {
     createIfNotExists: function(name) {
         Category.findOne({name: name}).done(function(err, category) {
             if (!category) {
-                Category.create({name: name, score: 1}).done(function(err, ctg) {});
+                Category.create({name: name, score: 1}).done(function(err, ctg) {
+                    var tags = ctg.name.split(/\s+/).join(",").replace(",&", "");
+                    yql.exec("select * from flickr.photos.search where tags='" + tags + "' and sort='relevance' and media='photos' and api_key='649afbc21db07cfa8d0a625590d3c1d9'", function(resp) {
+                        resp = resp.query;
+                        if (!resp.results) {next(); return;}
+                        if (!resp.results.photo) {next(); return;}
+                        if (!resp.results.photo[0]) {next(); return;}
+                        var photo = resp.results.photo[0];
+                        ctg.image = "http://farm" + photo.farm + ".staticflickr.com/" + photo.server + "/" + photo.id + "_" + photo.secret + ".jpg";
+                        ctg.save(function(){});
+                    });
+                });
             }
         });
     },
