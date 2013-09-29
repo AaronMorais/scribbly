@@ -28,6 +28,7 @@ UIBarButtonItem *_newButton;
 @property (nonatomic, retain) SCRNoteGridView *categoryView;
 @property (nonatomic, retain) UILabel *releaseText;
 @property (nonatomic, assign) BOOL showingNotes;
+@property (nonatomic, assign) BOOL showingKeyboard;
 @property (nonatomic, assign) BOOL isAnimating;
 @property (nonatomic, assign) BOOL requestedNoteID;
 @property (nonatomic, retain) NoteCategory *category;

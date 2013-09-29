@@ -28,7 +28,9 @@
     if (self) {
         self.descriptionLabel = [[UILabel alloc] init];
         self.descriptionLabel.text = @"";
-        self.descriptionLabel.textAlignment = NSTextAlignmentCenter;
+        self.descriptionLabel.textAlignment =
+        NSTextAlignmentCenter;
+        self.descriptionLabel.textColor = [UIColor whiteColor];
         self.descriptionLabel.minimumScaleFactor = 0.5;
         self.descriptionLabel.adjustsFontSizeToFitWidth = YES;
         [self.contentView addSubview:self.descriptionLabel];
@@ -37,10 +39,10 @@
 }
 
 - (void)layoutSubviews {
-    CGSize size = [self.descriptionLabel sizeThatFits:CGSizeMake(self.frame.size.width - 20, INT_MAX)];
     CGRect descriptionFrame = self.bounds;
-    descriptionFrame.size.width = size.width;
-    self.descriptionLabel.frame = self.bounds;
+    descriptionFrame.size.width -= 20;
+    descriptionFrame.origin.x = (self.bounds.size.width - descriptionFrame.size.width) / 2;
+    self.descriptionLabel.frame = descriptionFrame;
 }
 
 @end
@@ -63,7 +65,7 @@
     [super viewDidLoad];
     RFQuiltLayout *layout = [[RFQuiltLayout alloc] init];
     layout.direction = UICollectionViewScrollDirectionVertical;
-    layout.blockPixels = CGSizeMake(106.6, 100);
+    layout.blockPixels = CGSizeMake(106.6, 101);
     self.collectionView = [[UICollectionView alloc] initWithFrame:self.view.bounds collectionViewLayout:layout];
     self.collectionView.delegate = self;
     self.collectionView.dataSource = self;
@@ -150,13 +152,13 @@
         colors = @[
             [UIColor colorWithRed:192.0f/256.0f green:57.0f/256.0f blue:43.0f/256.0f alpha:1.0f],
             [UIColor colorWithRed:230.0f/256.0f green:126.0f/256.0f blue:34.0f/256.0f alpha:1.0f],
-            [UIColor colorWithRed:52.0f/256.0f green:73.0f/256.0f blue:94.0f/256.0f alpha:1.0f]];
+            [UIColor colorWithRed:52.0f/256.0f green:73.0f/256.0f blue:94.0f/256.0f alpha:1.0f],
             [UIColor colorWithRed:39.0f/256.f green:174.0f/256.0f blue:96.0f/256.0f alpha:1.0f]];
     } else {
         colors = @[
-            [UIColor colorWithRed:44.0f/2560f green:62.0f/256.0f blue:80.0f/256.0f alpha:1.0f],
-            [UIColor colorWithRed:52.0f/2560f green:152.0f/256.0f blue:219.0f/256.0f alpha:1.0f],
-            [UIColor colorWithRed:41.0f/256.0f green:128.0f/256.0f blue:185.0f/256.0f alpha:1.0f]];
+            [UIColor colorWithRed:44.0f/256.0f green:62.0f/256.0f blue:80.0f/256.0f alpha:1.0f],
+            [UIColor colorWithRed:52.0f/256.0f green:152.0f/256.0f blue:219.0f/256.0f alpha:1.0f],
+            [UIColor colorWithRed:41.0f/256.0f green:128.0f/256.0f blue:185.0f/256.0f alpha:1.0f],
             [UIColor colorWithRed:46.0f/256.0f green:204.0f/256.0f blue:113.0f/256.0f alpha:1.0f]];
     }
     uint32_t rnd = arc4random_uniform([colors count]);
@@ -176,6 +178,8 @@
         return CGSizeMake(3, 2);
     } else if ([category.score intValue] > 30) {
         return CGSizeMake(2, 2);
+    } else if ([category.score intValue] > 20) {
+        return CGSizeMake(1, 2);
     } else if ([category.score intValue] > 10) {
         return CGSizeMake(2, 1);
     } else {
@@ -184,7 +188,8 @@
 }
 
 - (UIEdgeInsets)insetsForItemAtIndexPath:(NSIndexPath *)indexPath {
-    return UIEdgeInsetsMake(1, 1, 1, 1);
+//    return UIEdgeInsetsMake(1, 1, 1, 1);
+    return UIEdgeInsetsZero;
 }
 
 @end

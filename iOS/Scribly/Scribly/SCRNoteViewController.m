@@ -26,6 +26,7 @@
         self.notes = [NSArray array];
         self.requestedNoteID = NO;
         self.navigationController.navigationBar.tintColor = [UIColor orangeColor];
+        self.showingKeyboard = NO;
     }
     return self;
 }
@@ -63,7 +64,7 @@
     [self.view addSubview:self.scrollView];
     
     self.textView = [[UITextView alloc] initWithFrame:self.view.bounds];
-    self.textView.font = [UIFont systemFontOfSize:16];
+    self.textView.font = [UIFont systemFontOfSize:18];
     self.textView.clipsToBounds = NO;
     self.textView.delegate = self;
     [self.scrollView addSubview:self.textView];
@@ -92,9 +93,12 @@
     if (self.showingNotes) {
         [self.textView becomeFirstResponder];
     }
-    
     self.view.backgroundColor = [UIColor whiteColor];
     [self.view setNeedsLayout];
+}
+
+- (void)dealloc {
+    self.view.gestureRecognizers = nil;
 }
 
 - (void)newNote {
@@ -109,6 +113,7 @@
 
 - (void)viewWillAppear:(BOOL)animated {
     [self refresh];
+    self.tableView.contentInset = UIEdgeInsetsMake(0, 0, 60, 0);
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
@@ -159,32 +164,33 @@
 }
 
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView {
-    if (scrollView == self.tableView) { return;}
-    if (self.isAnimating) {
-        CGFloat offset = MAX(scrollView.contentOffset.y * -1, 0);
-        scrollView.contentInset = UIEdgeInsetsMake(offset, 0.0f, 0.0f, 0.0f);
-    }
-    if (scrollView.contentOffset.y <= 0) {
-        CGRect headerViewFrame = self.headerView.frame;
-        headerViewFrame.size.height = - scrollView.contentOffset.y;
-        self.headerView.frame = headerViewFrame;
-        self.headerSubview.frame = CGRectInset(self.headerView.bounds, 15, 15);
-        if (self.headerView.frame.size.height < 50) {
-            self.releaseText.hidden = YES;
-        } else {
-            self.releaseText.hidden = NO;
+    if (scrollView != self.tableView) {
+        if (self.isAnimating) {
+            CGFloat offset = MAX(scrollView.contentOffset.y * -1, 0);
+            scrollView.contentInset = UIEdgeInsetsMake(offset, 0.0f, 0.0f, 0.0f);
         }
-        self.releaseText.center = self.headerView.center;
+        if (scrollView.contentOffset.y <= 0) {
+            CGRect headerViewFrame = self.headerView.frame;
+            headerViewFrame.size.height = - scrollView.contentOffset.y;
+            self.headerView.frame = headerViewFrame;
+            self.headerSubview.frame = CGRectInset(self.headerView.bounds, 15, 15);
+            if (self.headerView.frame.size.height < 50) {
+                self.releaseText.hidden = YES;
+            } else {
+                self.releaseText.hidden = NO;
+            }
+            self.releaseText.center = self.headerView.center;
+        }
     }
 }
 
-
 - (void)scrollViewDidEndDragging:(UIScrollView *)scrollView willDecelerate:(BOOL)decelerate {
-    if (scrollView == self.tableView) { return;}
-    if (scrollView.contentOffset.y < - 100) {
-        CGFloat offset = MAX(scrollView.contentOffset.y * -1, 0);
-        scrollView.contentInset = UIEdgeInsetsMake(offset, 0.0f, 0.0f, 0.0f);
-        [self showNotes:NO Animated:YES];
+    if (scrollView != self.tableView) {
+        if (scrollView.contentOffset.y < - 100) {
+            CGFloat offset = MAX(scrollView.contentOffset.y * -1, 0);
+            scrollView.contentInset = UIEdgeInsetsMake(offset, 0.0f, 0.0f, 0.0f);
+            [self showNotes:NO Animated:YES];
+        }
     }
 }
 
@@ -192,6 +198,7 @@
     UIBarButtonItem *doneButton = [[UIBarButtonItem alloc] initWithTitle:@"Done" style:UIBarButtonItemStyleDone target:self action:@selector(dismissKeyboard)];
     self.navigationItem.rightBarButtonItem = doneButton;
     self.textView.frame = CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height - 216);
+    self.showingKeyboard = YES;
 }
 
 - (void)textViewDidChange:(UITextView *)textView {
@@ -231,6 +238,7 @@
     CGSize textHeight = [textView sizeThatFits:CGSizeMake(self.view.frame.size.width, INT_MAX)];
     self.textView.frame = CGRectMake(0, 0, self.view.frame.size.width, textHeight.height);
     self.scrollView.contentSize = CGSizeMake(self.view.frame.size.width, MAX(textHeight.height, self.scrollView.contentSize.height + 100));
+    self.showingKeyboard = NO;
 }
 
 - (void)dismissKeyboard {
