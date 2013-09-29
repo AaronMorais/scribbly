@@ -139,7 +139,7 @@ module.exports = {
                 for (var x in stns) {
                     (function(stn, index) {
                         Note.findOne({id: stn.note, user: user.id}).done(function(err, note) {
-                            if (note && (stn.synonym.indexOf(query) != -1 || note.text.indexOf(query) != -1) && !_.findWhere(notes, {id: note.id}))
+                            if (note && (stn.synonym.toLowerCase().indexOf(query.toLowerCase()) != -1 || note.text.toLowerCase().indexOf(query.toLowerCase()) != -1) && !_.findWhere(notes, {id: note.id}))
                                 notes.push(note);
                             if (index == stns.length-1) {
                                 finish();
