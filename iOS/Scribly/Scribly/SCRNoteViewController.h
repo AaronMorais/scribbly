@@ -14,6 +14,10 @@
 
 @interface SCRNoteViewController : UIViewController <UIScrollViewDelegate, SCRNoteGridViewProtocol, UITextViewDelegate, UITableViewDataSource, UITableViewDelegate>
 
+{
+UIBarButtonItem *_newButton;
+}
+
 @property (nonatomic, retain) SCRNoteManager *noteManager;
 
 @property (nonatomic, retain) UITableView *tableView;
