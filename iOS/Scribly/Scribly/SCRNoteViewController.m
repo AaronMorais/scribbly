@@ -8,8 +8,7 @@
 
 #import "SCRNoteViewController.h"
 #import "SCRNoteManager.h"
-#import "Note.h"
-#import "NoteCategory.h"
+#import <AFHTTPRequestOperationManager.h>
 
 @interface SCRNoteViewController ()
 
@@ -17,22 +16,28 @@
 
 @implementation SCRNoteViewController
 
-- (id)initWithNote:(Note *) note {
+- (id)initWithCategory:(NoteCategory *)category {
     self = [super init];
     if (self) {
-        self.showingNotes = (note == nil);
+        self.showingNotes = (category == nil);
         self.edgesForExtendedLayout = UIRectEdgeNone;
         self.navigationItem.title = @"Notes";
+        self.category = category;
+        self.notes = [NSArray array];
+        self.requestedNoteID = NO;
     }
     return self;
 }
 
 - (void)viewDidLoad {
     [super viewDidLoad];
+    self.tableView = [[UITableView alloc] init];
+    self.tableView.frame = self.view.bounds;
+    self.tableView.delegate = self;
+    self.tableView.dataSource = self;
+    [self.view addSubview:self.tableView];
+    
     self.noteManager = [SCRNoteManager sharedSingleton];
-    [self.noteManager addNoteWithText:@"TestNote" WithID:@19201];
-    [self.noteManager addCategoryWithID:@18101 WithName:@"Tests!" WithScore:@9001];
-    [self.noteManager updateNote:@19201 WithText:@"TestNoteUpdate"];
     
     NSArray *notes = [self.noteManager getNotes];
     for(Note *note in notes) {
@@ -44,9 +49,9 @@
         NSLog(@"%@, %@, %@", category.identifier, category.name, category.score);
     }
    
-    self.categoryView = [[SCRNoteGridView alloc] initWithFrame:self.view.bounds];
-    self.categoryView.delegate = self;
-    [self.view addSubview:self.categoryView];
+//    self.categoryView = [[SCRNoteGridView alloc] initWithFrame:self.view.bounds];
+//    self.categoryView.delegate = self;
+//    [self.view addSubview:self.categoryView];
     
     self.scrollView = [[UIScrollView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height)];
     self.scrollView.delegate = self;
@@ -85,6 +90,49 @@
     [self.view setNeedsLayout];
 }
 
+- (void)viewWillAppear:(BOOL)animated {
+    [self refresh];
+}
+
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
+    return 30.0f;
+}
+
+- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
+    return 1;
+}
+
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
+    return [self.notes count];
+}
+
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+    Note *note = [[SCRNoteManager sharedSingleton] getNotes][indexPath.row];
+    if (note) {
+        self.note = note;
+        self.textView.text = note.text;
+        [self showNotes:YES Animated:YES];
+    }
+    [tableView deselectRowAtIndexPath:indexPath animated:YES];
+}
+
+-(UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
+    static NSString *MyIdentifier = @"MyIdentifier";
+
+    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:MyIdentifier];
+
+    if (cell == nil) {
+        cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault
+                                      reuseIdentifier:MyIdentifier];
+    }
+    if (self.notes) {
+        Note *note = [self.notes objectAtIndex:indexPath.row];
+        cell.textLabel.text = note.text;
+        self.requestedNoteID = YES;
+    }
+    return cell;
+}
+
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView {
     if (self.isAnimating) {
         CGFloat offset = MAX(scrollView.contentOffset.y * -1, 0);
@@ -107,6 +155,33 @@
 - (void)textViewDidChange:(UITextView *)textView {
     NSRange range = NSMakeRange(textView.text.length - 1, 1);
     [textView scrollRangeToVisible:range];
+ 
+    NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
+    NSString *token = [prefs objectForKey:@"userToken"];
+    AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
+    NSDictionary *params;
+    if (self.note) {
+        params = @{@"token":token, @"text":self.textView.text, @"id":self.note.identifier};
+    } else {
+        params = @{@"token":token, @"text":self.textView.text};
+    }
+    if (!self.requestedNoteID || self.note) {
+        [manager GET:@"http://172.21.167.83:1337/note/save" parameters:params success:^(AFHTTPRequestOperation *operation, id responseObject) {
+            [[SCRNoteManager sharedSingleton] addNoteWithText:responseObject[@"text"] WithID:responseObject[@"id"]];
+            Note *note = [[SCRNoteManager sharedSingleton] getNoteWithID:responseObject[@"id"]];
+            if (!self.note && note) {
+                self.note = note;
+            }
+            [[SCRNoteManager sharedSingleton] addCategoryWithID:nil WithName:responseObject[@"primaryCategory"] WithScore:responseObject[@"score"]];
+            NoteCategory *category = [[SCRNoteManager sharedSingleton] getNoteCategoryWithName:responseObject[@"primaryCategory"]];
+            if (category) {
+                self.category = category;
+            }
+        } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+            NSLog(@"Error: %@", error);
+        }];
+        self.requestedNoteID = YES;
+    }
 }
 
 - (void)textViewDidEndEditing:(UITextView *)textView {
@@ -132,7 +207,38 @@
     [self showNotes:YES Animated:YES];
 }
 
+- (void)refresh {
+    if (self.category) {
+        NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
+        NSString *token = [prefs objectForKey:@"userToken"];
+        AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
+        NSDictionary *params = @{@"token":token, @"name":self.category.name};
+        [manager GET:@"http://172.21.167.83:1337/category/notes" parameters:params success:^(AFHTTPRequestOperation *operation, id responseObject) {
+            [[SCRNoteManager sharedSingleton] clearNotes];
+            NSArray *jsonResponseObject = (NSArray *)responseObject;
+            for (NSDictionary *jsonCategory in jsonResponseObject) {
+                [[SCRNoteManager sharedSingleton] addNoteWithText:jsonCategory[@"text"] WithID:jsonCategory[@"id"]];
+            }
+            self.notes = [[SCRNoteManager sharedSingleton] getNotes];
+            [self.tableView reloadData];
+        } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+            NSLog(@"Error: %@", error);
+        }];
+    }
+}
+
+- (void)setCategory:(NoteCategory *)category {
+    _category = category;
+    if (category.name) {
+        self.navigationItem.title = category.name;
+    }
+}
+
 - (void)showNotes:(BOOL)show Animated:(BOOL)animated {
+    if (!show) {
+        [self refresh];
+    }
+
     void (^animationBlock)() = ^void () {
         if (show) {
             CGRect headerViewFrame = self.headerView.frame;

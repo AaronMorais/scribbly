@@ -7,8 +7,6 @@
 //
 
 #import "SCRNoteManager.h"
-#import "Note.h"
-#import "NoteCategory.h"
 #import "SCRAppDelegate.h"
 
 @implementation SCRNoteManager
@@ -40,6 +38,26 @@ static SCRNoteManager *sharedSingleton;
     }
 }
 
+- (Note *)getNoteWithID:(NSNumber *)ID {
+    NSFetchRequest *request = [[NSFetchRequest alloc] init];
+    [request setEntity:[NSEntityDescription entityForName:@"Note" inManagedObjectContext:self.managedObjectContext]];
+    NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == %@", ID];
+    [request setPredicate:predicate];
+    NSError *error = nil;
+    NSArray *results = [self.managedObjectContext executeFetchRequest:request error:&error];
+    return results[0];
+}
+
+- (NoteCategory *)getNoteCategoryWithName:(NSString *)name {
+    NSFetchRequest *request = [[NSFetchRequest alloc] init];
+    [request setEntity:[NSEntityDescription entityForName:@"NoteCategory" inManagedObjectContext:self.managedObjectContext]];
+    NSPredicate *predicate = [NSPredicate predicateWithFormat:@"name == %@", name];
+    [request setPredicate:predicate];
+    NSError *error = nil;
+    NSArray *results = [self.managedObjectContext executeFetchRequest:request error:&error];
+    return results[0];
+}
+
 - (void)updateNote:(NSNumber *)ID WithText:(NSString *)text {
     NSFetchRequest *request = [[NSFetchRequest alloc] init];
     [request setEntity:[NSEntityDescription entityForName:@"Note" inManagedObjectContext:self.managedObjectContext]];
@@ -66,6 +84,36 @@ static SCRNoteManager *sharedSingleton;
     if (![self.managedObjectContext save:&error]) {
         NSLog(@"Whoops, couldn't save: %@", [error localizedDescription]);
     }
+}
+
+- (void)clearNotes {
+    NSFetchRequest * allCategories = [[NSFetchRequest alloc] init];
+    [allCategories setEntity:[NSEntityDescription entityForName:@"Note" inManagedObjectContext:self.managedObjectContext]];
+    [allCategories setIncludesPropertyValues:NO];
+
+    NSError * error = nil;
+    NSArray * categories = [self.managedObjectContext executeFetchRequest:allCategories error:&error];
+    
+    for (NSManagedObject * category in categories) {
+        [self.managedObjectContext deleteObject:category];
+    }
+    NSError *saveError = nil;
+    [self.managedObjectContext save:&saveError];
+}
+
+- (void)clearCategories {
+    NSFetchRequest * allCategories = [[NSFetchRequest alloc] init];
+    [allCategories setEntity:[NSEntityDescription entityForName:@"NoteCategory" inManagedObjectContext:self.managedObjectContext]];
+    [allCategories setIncludesPropertyValues:NO];
+
+    NSError * error = nil;
+    NSArray * categories = [self.managedObjectContext executeFetchRequest:allCategories error:&error];
+    
+    for (NSManagedObject * category in categories) {
+        [self.managedObjectContext deleteObject:category];
+    }
+    NSError *saveError = nil;
+    [self.managedObjectContext save:&saveError];
 }
 
 - (NSArray *)getNotes {

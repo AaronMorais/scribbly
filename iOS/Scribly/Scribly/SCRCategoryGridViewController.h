@@ -9,6 +9,6 @@
 #import <UIKit/UIKit.h>
 #import "SCRNoteGridView.h"
 
-@interface SCRCategoryGridViewController : UIViewController <SCRNoteGridViewProtocol>
-
+@interface SCRCategoryGridViewController : UITableViewController <UITableViewDataSource, UITableViewDelegate>
+@property NSArray *categories;
 @end
