@@ -26,11 +26,12 @@ static SCRNoteManager *sharedSingleton;
   }
 }
 
-- (void)addNoteWithText:(NSString *)text WithID:(NSNumber *)ID {
+- (void)addNoteWithText:(NSString *)text WithID:(NSNumber *)ID WithCategory:(NSString *)category{
     Note *newEntry = [NSEntityDescription insertNewObjectForEntityForName:@"Note"
                                                     inManagedObjectContext:self.managedObjectContext];
     newEntry.text = text;
     newEntry.identifier = ID;
+    newEntry.category = category;
     
     NSError *error;
     if (![self.managedObjectContext save:&error]) {

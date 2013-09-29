@@ -8,15 +8,14 @@
 
 #import <UIKit/UIKit.h>
 #import "RFQuiltLayout.h"
+#import "SCRSearchViewController.h"
 
-@interface SCRCategoryGridViewController : UIViewController <RFQuiltLayoutDelegate, UICollectionViewDelegate, UICollectionViewDataSource, UISearchDisplayDelegate, UITableViewDelegate, UITableViewDataSource>
+@interface SCRCategoryGridViewController : UIViewController <RFQuiltLayoutDelegate, UICollectionViewDelegate, UICollectionViewDataSource, SCRSearchDelegateProtocol>
 
-@property (nonatomic, readonly) UITableView *tableView;
-@property (nonatomic, readonly) UISearchBar *searchBar;
-@property (nonatomic, retain) NSArray *notes;
-@property (nonatomic, retain) UISearchDisplayController *sDisplayController;
 @property (nonatomic, retain) NSArray *categories;
 @property NSMutableArray *colors;
 @property UICollectionView *collectionView;
+
+@property UINavigationController *searchNavController;
 
 @end

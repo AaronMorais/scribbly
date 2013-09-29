@@ -35,6 +35,7 @@ UIBarButtonItem *_newButton;
 @property (nonatomic, retain) Note *note;
 @property (nonatomic, retain) NSArray *notes;
 
+- (id)initWithNote:(Note *)note;
 - (id)initWithCategory:(NoteCategory *) category;
 
 @end

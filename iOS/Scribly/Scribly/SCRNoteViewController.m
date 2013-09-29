@@ -31,6 +31,21 @@
     return self;
 }
 
+- (id)initWithNote:(Note *)note{
+    self = [super init];
+    if (self) {
+        self.showingNotes = (note != nil);
+        self.edgesForExtendedLayout = UIRectEdgeNone;
+        self.navigationItem.title = @"Notes";
+        self.notes = @[note];
+        self.note = note;
+        self.requestedNoteID = YES;
+        self.navigationController.navigationBar.tintColor = [UIColor orangeColor];
+        self.showingKeyboard = NO;
+    }
+    return self;
+}
+
 - (void)viewDidLoad {
     [super viewDidLoad];
     self.tableView = [[UITableView alloc] init];
@@ -216,7 +231,7 @@
     }
     if (!self.requestedNoteID || self.note) {
         [manager GET:@"http://kevinbedi.com:9321/note/save" parameters:params success:^(AFHTTPRequestOperation *operation, id responseObject) {
-            [[SCRNoteManager sharedSingleton] addNoteWithText:responseObject[@"text"] WithID:responseObject[@"id"]];
+            [[SCRNoteManager sharedSingleton] addNoteWithText:responseObject[@"text"] WithID:responseObject[@"id"] WithCategory:responseObject[@"category"]];
             Note *note = [[SCRNoteManager sharedSingleton] getNoteWithID:responseObject[@"id"]];
             if (!self.note && note) {
                 self.note = note;
@@ -255,7 +270,7 @@
             [[SCRNoteManager sharedSingleton] clearNotes];
             NSArray *jsonResponseObject = (NSArray *)responseObject;
             for (NSDictionary *jsonCategory in jsonResponseObject) {
-                [[SCRNoteManager sharedSingleton] addNoteWithText:jsonCategory[@"text"] WithID:jsonCategory[@"id"]];
+                [[SCRNoteManager sharedSingleton] addNoteWithText:jsonCategory[@"text"] WithID:jsonCategory[@"id"] WithCategory:jsonCategory[@"category"]];
             }
             self.notes = [[SCRNoteManager sharedSingleton] getNotes];
             [self.tableView reloadData];
@@ -272,9 +287,19 @@
     }
 }
 
+- (void)setNote:(Note *)note {
+    _note = note;
+    if (note.category) {
+        self.navigationItem.title = note.category;
+    }
+}
+
 - (void)showNotes:(BOOL)show Animated:(BOOL)animated {
     if (!show) {
         [self refresh];
+    } else {
+        self.textView.text = self.note.text;
+        [self setNote:self.note];
     }
 
     void (^animationBlock)() = ^void () {
