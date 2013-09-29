@@ -12,7 +12,7 @@
 #import "NoteCategory.h"
 #import "Note.h"
 
-@interface SCRNoteViewController : UIViewController <UIScrollViewDelegate, SCRNoteGridViewProtocol, UITextViewDelegate, UITableViewDataSource, UITableViewDelegate>
+@interface SCRNoteViewController : UIViewController <UIScrollViewDelegate, UITextViewDelegate, UITableViewDataSource, UITableViewDelegate>
 
 {
 UIBarButtonItem *_newButton;
@@ -23,6 +23,7 @@ UIBarButtonItem *_newButton;
 @property (nonatomic, retain) UITableView *tableView;
 @property (nonatomic, retain) UIScrollView *scrollView;
 @property (nonatomic, retain) UIView *headerView;
+@property (nonatomic, retain) UIView *headerSubview;
 @property (nonatomic, retain) UITextView *textView;
 @property (nonatomic, retain) SCRNoteGridView *categoryView;
 @property (nonatomic, retain) UILabel *releaseText;

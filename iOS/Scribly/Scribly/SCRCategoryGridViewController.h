@@ -10,6 +10,7 @@
 #import "RFQuiltLayout.h"
 
 @interface SCRCategoryGridViewController : UIViewController <RFQuiltLayoutDelegate, UICollectionViewDelegate, UICollectionViewDataSource>
-@property NSArray *categories;
+@property (nonatomic, retain) NSArray *categories;
+@property NSMutableArray *colors;
 @property UICollectionView *collectionView;
 @end

@@ -25,6 +25,7 @@
         self.category = category;
         self.notes = [NSArray array];
         self.requestedNoteID = NO;
+        self.navigationController.navigationBar.tintColor = [UIColor orangeColor];
     }
     return self;
 }
@@ -48,10 +49,6 @@
     for(NoteCategory *category in categories) {
         NSLog(@"%@, %@, %@", category.identifier, category.name, category.score);
     }
-   
-//    self.categoryView = [[SCRNoteGridView alloc] initWithFrame:self.view.bounds];
-//    self.categoryView.delegate = self;
-//    [self.view addSubview:self.categoryView];
     
     _newButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAdd target:self action:@selector(newNote)];
     self.navigationItem.rightBarButtonItem = _newButton;
@@ -72,15 +69,22 @@
     [self.scrollView addSubview:self.textView];
     
     self.headerView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 0)];
-    self.headerView.backgroundColor = [UIColor redColor];
+    self.headerView.backgroundColor = [UIColor whiteColor];
     self.headerView.clipsToBounds = YES;
     [self.view addSubview:self.headerView];
+    
+    self.headerSubview = [[UIView alloc] init];
+    self.headerSubview.backgroundColor = [UIColor colorWithWhite:0.8627f alpha:1.0];
+    self.headerSubview.clipsToBounds = YES;
+    self.headerSubview.layer.cornerRadius = 5.0f;
+    [self.headerView addSubview:self.headerSubview];
     
     self.releaseText = [[UILabel alloc] init];
     self.releaseText.text = @"View Categories";
     [self.releaseText sizeToFit];
     self.releaseText.center = self.headerView.center;
     self.releaseText.clipsToBounds = YES;
+    self.releaseText.layer.masksToBounds = YES;
     [self.headerView addSubview:self.releaseText];
     
     [self showNotes:self.showingNotes Animated:NO];
@@ -125,6 +129,14 @@
         self.note = note;
         self.textView.text = note.text;
         [self showNotes:YES Animated:YES];
+        NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
+        NSString *token = [prefs objectForKey:@"userToken"];
+        AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
+        NSDictionary *params = @{@"token":token, @"id":self.note.identifier};
+        [manager GET:@"http://kevinbedi.com:9321/note/view" parameters:params success:^(AFHTTPRequestOperation *operation, id responseObject) {
+            } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+            NSLog(@"Error: %@", error);
+        }];
     }
     [tableView deselectRowAtIndexPath:indexPath animated:YES];
 }
@@ -147,6 +159,7 @@
 }
 
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView {
+    if (scrollView == self.tableView) { return;}
     if (self.isAnimating) {
         CGFloat offset = MAX(scrollView.contentOffset.y * -1, 0);
         scrollView.contentInset = UIEdgeInsetsMake(offset, 0.0f, 0.0f, 0.0f);
@@ -155,7 +168,23 @@
         CGRect headerViewFrame = self.headerView.frame;
         headerViewFrame.size.height = - scrollView.contentOffset.y;
         self.headerView.frame = headerViewFrame;
+        self.headerSubview.frame = CGRectInset(self.headerView.bounds, 15, 15);
+        if (self.headerView.frame.size.height < 50) {
+            self.releaseText.hidden = YES;
+        } else {
+            self.releaseText.hidden = NO;
+        }
         self.releaseText.center = self.headerView.center;
+    }
+}
+
+
+- (void)scrollViewDidEndDragging:(UIScrollView *)scrollView willDecelerate:(BOOL)decelerate {
+    if (scrollView == self.tableView) { return;}
+    if (scrollView.contentOffset.y < - 100) {
+        CGFloat offset = MAX(scrollView.contentOffset.y * -1, 0);
+        scrollView.contentInset = UIEdgeInsetsMake(offset, 0.0f, 0.0f, 0.0f);
+        [self showNotes:NO Animated:YES];
     }
 }
 
@@ -206,18 +235,6 @@
 
 - (void)dismissKeyboard {
     [self.textView resignFirstResponder];
-}
-
-- (void)scrollViewDidEndDragging:(UIScrollView *)scrollView willDecelerate:(BOOL)decelerate {
-    if (scrollView.contentOffset.y < - 100) {
-        CGFloat offset = MAX(scrollView.contentOffset.y * -1, 0);
-        scrollView.contentInset = UIEdgeInsetsMake(offset, 0.0f, 0.0f, 0.0f);
-        [self showNotes:NO Animated:YES];
-    }
-}
-
-- (void)itemSelected:(NSObject *)note {
-    [self showNotes:YES Animated:YES];
 }
 
 - (void)refresh {

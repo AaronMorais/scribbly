@@ -36,6 +36,8 @@
     self.window.rootViewController = [[UINavigationController alloc] initWithRootViewController:[[SCRCategoryGridViewController alloc] init]];
     [(UINavigationController *)self.window.rootViewController pushViewController:[[SCRNoteViewController alloc] initWithCategory:nil] animated:NO];
     [self.window makeKeyAndVisible];
+    self.window.rootViewController.navigationController.navigationBar.barStyle = UIBarStyleBlackOpaque;
+    self.window.rootViewController.navigationController.navigationBar.tintColor = [UIColor orangeColor];
     return YES;
 }
 
