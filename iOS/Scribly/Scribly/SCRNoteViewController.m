@@ -17,11 +17,18 @@
 
 @implementation SCRNoteViewController
 
-- (void)viewDidLoad
-{
+- (id)initWithNote:(Note *) note {
+    self = [super init];
+    if (self) {
+        self.showingNotes = (note == nil);
+        self.edgesForExtendedLayout = UIRectEdgeNone;
+        self.navigationItem.title = @"Notes";
+    }
+    return self;
+}
+
+- (void)viewDidLoad {
     [super viewDidLoad];
-     self.edgesForExtendedLayout = UIRectEdgeNone;
-    
     self.noteManager = [SCRNoteManager sharedSingleton];
     [self.noteManager addNoteWithText:@"TestNote" WithID:@19201];
     [self.noteManager addCategoryWithID:@18101 WithName:@"Tests!" WithScore:@9001];
@@ -50,6 +57,12 @@
     self.scrollView.backgroundColor = [UIColor whiteColor];
     [self.view addSubview:self.scrollView];
     
+    self.textView = [[UITextView alloc] initWithFrame:self.view.bounds];
+    self.textView.font = [UIFont systemFontOfSize:16];
+    self.textView.clipsToBounds = NO;
+    self.textView.delegate = self;
+    [self.scrollView addSubview:self.textView];
+    
     self.headerView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 0)];
     self.headerView.backgroundColor = [UIColor redColor];
     self.headerView.clipsToBounds = YES;
@@ -62,7 +75,11 @@
     self.releaseText.clipsToBounds = YES;
     [self.headerView addSubview:self.releaseText];
     
-    [self showNotes:YES Animated:NO];
+    [self showNotes:self.showingNotes Animated:NO];
+    
+    if (self.showingNotes) {
+        [self.textView becomeFirstResponder];
+    }
     
     self.view.backgroundColor = [UIColor whiteColor];
     [self.view setNeedsLayout];
@@ -81,6 +98,28 @@
     }
 }
 
+- (void)textViewDidBeginEditing:(UITextView *)textView {
+    UIBarButtonItem *doneButton = [[UIBarButtonItem alloc] initWithTitle:@"Done" style:UIBarButtonItemStyleDone target:self action:@selector(dismissKeyboard)];
+    self.navigationItem.rightBarButtonItem = doneButton;
+    self.textView.frame = CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height - 216);
+}
+
+- (void)textViewDidChange:(UITextView *)textView {
+    NSRange range = NSMakeRange(textView.text.length - 1, 1);
+    [textView scrollRangeToVisible:range];
+}
+
+- (void)textViewDidEndEditing:(UITextView *)textView {
+    self.navigationItem.rightBarButtonItem = nil;
+    CGSize textHeight = [textView sizeThatFits:CGSizeMake(self.view.frame.size.width, INT_MAX)];
+    self.textView.frame = CGRectMake(0, 0, self.view.frame.size.width, textHeight.height);
+    self.scrollView.contentSize = CGSizeMake(self.view.frame.size.width, MAX(textHeight.height, self.scrollView.contentSize.height + 100));
+}
+
+- (void)dismissKeyboard {
+    [self.textView resignFirstResponder];
+}
+
 - (void)scrollViewDidEndDragging:(UIScrollView *)scrollView willDecelerate:(BOOL)decelerate {
     if (scrollView.contentOffset.y < - 100) {
         CGFloat offset = MAX(scrollView.contentOffset.y * -1, 0);
@@ -89,7 +128,7 @@
     }
 }
 
-- (void)noteSelected:(Note *)note {
+- (void)itemSelected:(NSObject *)note {
     [self showNotes:YES Animated:YES];
 }
 
@@ -125,8 +164,12 @@
         self.scrollView.contentInset = UIEdgeInsetsZero;
     };
 
+    if (!show) {
+        [self.textView resignFirstResponder];
+    }
+
     if (animated) {
-        [UIView animateWithDuration:1.0 animations:animationBlock completion:completionBlock];
+        [UIView animateWithDuration:0.3 animations:animationBlock completion:completionBlock];
     } else {
         animationBlock();
         completionBlock(YES);

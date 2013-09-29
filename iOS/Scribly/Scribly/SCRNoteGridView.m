@@ -21,7 +21,7 @@
         [self.button setTitle:@"CLICKEZ MOI" forState:UIControlStateNormal];
         [self.button.titleLabel sizeToFit];
         self.button.backgroundColor = [UIColor redColor];
-        [self.button addTarget:self action:@selector(noteSelected) forControlEvents:UIControlEventTouchUpInside];
+        [self.button addTarget:self action:@selector(itemSelected) forControlEvents:UIControlEventTouchUpInside];
         [self addSubview:self.button];
     }
     return self;
@@ -32,9 +32,9 @@
     self.button.center = self.center;
 }
 
-- (void) noteSelected {
+- (void) itemSelected {
     NSArray *notes = [[SCRNoteManager sharedSingleton] getNotes];
-    [self.delegate noteSelected:notes[0]];
+    [self.delegate itemSelected:notes[0]];
 }
 
 @end

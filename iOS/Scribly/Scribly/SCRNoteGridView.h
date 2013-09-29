@@ -10,7 +10,7 @@
 #import "Note.h"
 
 @protocol SCRNoteGridViewProtocol <NSObject>
-- (void)noteSelected:(Note *)note;
+- (void)itemSelected:(NSObject *)note;
 @end
 
 @interface SCRNoteGridView : UIView
@@ -18,5 +18,7 @@
 @property (nonatomic, strong) id<SCRNoteGridViewProtocol> delegate;
 
 @property (nonatomic, strong) UIButton *button;
+
+- (void) itemSelected;
 
 @end

@@ -8,6 +8,7 @@
 
 #import "SCRAppDelegate.h"
 #import "SCRNoteViewController.h"
+#import "SCRCategoryGridViewController.h"
 
 @implementation SCRAppDelegate
 
@@ -19,7 +20,8 @@
 {
     self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
     // Override point for customization after application launch.
-    self.window.rootViewController = [[UINavigationController alloc] initWithRootViewController:[[SCRNoteViewController alloc] init]];
+    self.window.rootViewController = [[UINavigationController alloc] initWithRootViewController:[[SCRCategoryGridViewController alloc] init]];
+    [(UINavigationController *)self.window.rootViewController pushViewController:[[SCRNoteViewController alloc] initWithNote:nil] animated:NO];
     [self.window makeKeyAndVisible];
     return YES;
 }
