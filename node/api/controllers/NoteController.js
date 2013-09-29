@@ -7,6 +7,7 @@
 var util = require("util");
 var yql = require("yql");
 var _ = require('underscore');
+var request = require("request");
 
 module.exports = {
 
@@ -19,7 +20,7 @@ module.exports = {
         if (!id || !userToken) {res.send({error: "Invalid request!"}); return;}
 
         Note.getCategories(id, function(categories) {
-            for (x in categories) {
+            for (var x in categories) {
                 Category.updateViewCount(categories[x].id, parseInt(categories[x].viewCount)+1);
             }
 
@@ -28,7 +29,7 @@ module.exports = {
                     return total + parseInt(category.viewCount);
                 }, 3);
 
-                for (x in allCategories) {
+                for (var x in allCategories) {
                     Category.updateScore(allCategories[x].id, (allCategories[x].viewCount / total) * 100);
                 }
 
@@ -69,7 +70,7 @@ module.exports = {
                             noteCategories = [categories.content];
                         } else {
                             noteCategories = [];
-                            for (x in categories) {
+                            for (var x in categories) {
                                 noteCategories.push(categories[x].content);
                             }
                         }
@@ -77,7 +78,7 @@ module.exports = {
                     }
                 }
 
-                for (x in noteCategories) {
+                for (var x in noteCategories) {
                     Category.createIfNotExists(noteCategories[x]);
                 }
 
@@ -92,6 +93,7 @@ module.exports = {
                         note.save(function() {});
 
                         res.send(note);
+                        updateSynonyms(note.id, note.text);
                     });
                 } else {
                     Note.create({
@@ -104,6 +106,7 @@ module.exports = {
                         if (err) console.log(util.inspect(err, false, null));
                         
                         res.send(note);
+                        updateSynonyms(note.id, note.text);
                     });
                 }
             });            
@@ -112,3 +115,25 @@ module.exports = {
     }
 
 };
+
+
+var updateSynonyms = function(noteID, text) {
+    var words = text.split(/\s+/);
+
+    for (var x in words) {
+        words[x] = words[x].replace(/\W/g, '')
+
+        SynonymToNote.createIfNotExists(words[x], noteID);
+        request('http://words.bighugelabs.com/api/2/d4cdac4c477579e2e31e0d2b90b8e903/' + words[x] + '/json', function(err, resp, body) {
+            var body = JSON.parse(body);
+            var synonyms = [];
+            if (body.noun) synonyms = _.union(synonyms, body.noun.syn);
+            if (body.verb) synonyms = _.union(synonyms, body.verb.syn);
+
+
+            for (var y in synonyms) {
+                SynonymToNote.createIfNotExists(synonyms[y], noteID);
+            }
+        });
+    }
+}

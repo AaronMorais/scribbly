@@ -69,7 +69,7 @@ module.exports = {
             if (!user) {res.send({error: "Invalid token!"}); return;}
 
             Category.find().done(function(err, categories) {
-                for (x in categories) {
+                for (var x in categories) {
                     (function(ctgry, idx) {
                         User.hasNoteInCategory(user.id, categories[x].name, function(has) {
                             if (has) {
