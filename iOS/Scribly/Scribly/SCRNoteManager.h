@@ -7,6 +7,8 @@
 //
 
 #import <Foundation/Foundation.h>
+#import "Note.h"
+#import "NoteCategory.h"
 
 @interface SCRNoteManager : NSObject
 
@@ -16,8 +18,12 @@
 - (void)addNoteWithText:(NSString *)text WithID:(NSNumber *)ID;
 - (void)updateNote:(NSNumber *)ID WithText:(NSString *)text;
 - (void)addCategoryWithID:(NSNumber *)ID WithName:(NSString *)name WithScore:(NSNumber *)score;
+- (Note *)getNoteWithID:(NSNumber *)ID;
+- (NoteCategory *)getNoteCategoryWithName:(NSString *)name;
 - (NSArray *)getNotes;
+- (void)clearNotes;
 - (NSArray *)getCategories;
+- (void)clearCategories;
 - (NSArray *)getRecord:(NSString *)entityName;
 
 @end
