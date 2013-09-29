@@ -30,7 +30,7 @@ module.exports = {
         toJSON: function() {
             var obj = this.toObject();
             obj.score = parseInt(obj.score);
-            obj.viewCount = parseInt(obj.score);
+            obj.viewCount = parseInt(obj.viewCount);
 
             return obj;
         },
