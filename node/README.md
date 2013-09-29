@@ -1,0 +1,2 @@
+# node
+### a Sails application
