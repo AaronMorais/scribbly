@@ -7,8 +7,9 @@
 //
 
 #import <UIKit/UIKit.h>
-#import "SCRNoteGridView.h"
+#import "RFQuiltLayout.h"
 
-@interface SCRCategoryGridViewController : UITableViewController <UITableViewDataSource, UITableViewDelegate>
+@interface SCRCategoryGridViewController : UIViewController <RFQuiltLayoutDelegate, UICollectionViewDelegate, UICollectionViewDataSource>
 @property NSArray *categories;
+@property UICollectionView *collectionView;
 @end
