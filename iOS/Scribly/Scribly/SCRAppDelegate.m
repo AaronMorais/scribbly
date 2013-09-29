@@ -23,7 +23,7 @@
     [prefs objectForKey:@"userToken"];
     if (![prefs objectForKey:@"userToken"]) {
         AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
-        [manager GET:@"http://kevinbedi.com:9321/user/create" parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
+        [manager GET:@"http://10.101.30.230:1337/user/create" parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
             NSDictionary *jsonResponseObject = (NSDictionary *)responseObject;
             NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
             [prefs setObject:jsonResponseObject[@"token"] forKey:@"userToken"];
@@ -143,7 +143,7 @@
          * Simply deleting the existing store:
          [[NSFileManager defaultManager] removeItemAtURL:storeURL error:nil]
          
-         * Performing automatic lightweight migration by passing the following dictionary as the options parameter:
+         * Performing automatic lightweight migration by pa ssing the following dictionary as the options parameter:
          @{NSMigratePersistentStoresAutomaticallyOption:@YES, NSInferMappingModelAutomaticallyOption:@YES}
          
          Lightweight migration will only work for a limited set of schema changes; consult "Core Data Model Versioning and Data Migration Programming Guide" for details.

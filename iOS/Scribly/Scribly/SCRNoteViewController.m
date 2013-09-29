@@ -153,7 +153,7 @@
         NSString *token = [prefs objectForKey:@"userToken"];
         AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
         NSDictionary *params = @{@"token":token, @"id":self.note.identifier};
-        [manager GET:@"http://kevinbedi.com:9321/note/view" parameters:params success:^(AFHTTPRequestOperation *operation, id responseObject) {
+        [manager GET:@"http://10.101.30.230:1337/note/view" parameters:params success:^(AFHTTPRequestOperation *operation, id responseObject) {
             } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
             NSLog(@"Error: %@", error);
         }];
@@ -230,7 +230,7 @@
         params = @{@"token":token, @"text":self.textView.text};
     }
     if (!self.requestedNoteID || self.note) {
-        [manager GET:@"http://kevinbedi.com:9321/note/save" parameters:params success:^(AFHTTPRequestOperation *operation, id responseObject) {
+        [manager GET:@"http://10.101.30.230:1337/note/save" parameters:params success:^(AFHTTPRequestOperation *operation, id responseObject) {
             [[SCRNoteManager sharedSingleton] addNoteWithText:responseObject[@"text"] WithID:responseObject[@"id"] WithCategory:responseObject[@"category"]];
             Note *note = [[SCRNoteManager sharedSingleton] getNoteWithID:responseObject[@"id"]];
             if (!self.note && note) {
@@ -261,12 +261,14 @@
 }
 
 - (void)refresh {
-    if (self.category && self.category.name) {
+    if ((self.category && self.category.name) || (self.note && self.note.category)) {
         NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
         NSString *token = [prefs objectForKey:@"userToken"];
         AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
-        NSDictionary *params = @{@"token":token, @"name":self.category.name};
-        [manager GET:@"http://kevinbedi.com:9321/category/notes" parameters:params success:^(AFHTTPRequestOperation *operation, id responseObject) {
+        NSString *name = self.category.name;
+        name = name ? : self.note.category;
+        NSDictionary *params = @{@"token":token, @"name":name};
+        [manager GET:@"http://10.101.30.230:1337/category/notes" parameters:params success:^(AFHTTPRequestOperation *operation, id responseObject) {
             [[SCRNoteManager sharedSingleton] clearNotes];
             NSArray *jsonResponseObject = (NSArray *)responseObject;
             for (NSDictionary *jsonCategory in jsonResponseObject) {
@@ -298,8 +300,11 @@
     if (!show) {
         [self refresh];
     } else {
-        self.textView.text = self.note.text;
-        [self setNote:self.note];
+        if (self.note) {
+            self.textView.text = self.note.text;
+            [self setNote:self.note];
+            [self refresh];
+        }
     }
 
     void (^animationBlock)() = ^void () {
