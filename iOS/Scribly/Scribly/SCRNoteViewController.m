@@ -43,7 +43,9 @@
     
     self.scrollView = [[UIScrollView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height)];
     self.scrollView.delegate = self;
-    self.scrollView.contentSize = CGSizeMake(self.scrollView.frame.size.width, self.scrollView.frame.size.height + 1);
+    self.scrollView.bounces = YES;
+    self.scrollView.contentSize = CGSizeMake(self.scrollView.frame.size.width, self.scrollView.frame.size.height);
+    self.scrollView.alwaysBounceVertical = YES;
     [self.scrollView setShowsVerticalScrollIndicator:NO];
     self.scrollView.backgroundColor = [UIColor whiteColor];
     [self.view addSubview:self.scrollView];
@@ -60,12 +62,18 @@
     self.releaseText.clipsToBounds = YES;
     [self.headerView addSubview:self.releaseText];
     
+    [self showNotes:YES Animated:NO];
+    
     self.view.backgroundColor = [UIColor whiteColor];
     [self.view setNeedsLayout];
 }
 
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView {
-    if (scrollView.contentOffset.y < 0) {
+    if (self.isAnimating) {
+        CGFloat offset = MAX(scrollView.contentOffset.y * -1, 0);
+        scrollView.contentInset = UIEdgeInsetsMake(offset, 0.0f, 0.0f, 0.0f);
+    }
+    if (scrollView.contentOffset.y <= 0) {
         CGRect headerViewFrame = self.headerView.frame;
         headerViewFrame.size.height = - scrollView.contentOffset.y;
         self.headerView.frame = headerViewFrame;
@@ -74,33 +82,56 @@
 }
 
 - (void)scrollViewDidEndDragging:(UIScrollView *)scrollView willDecelerate:(BOOL)decelerate {
-    if (scrollView.contentOffset.y < - 30) {
-        [UIView animateWithDuration:1.0 animations:^{
+    if (scrollView.contentOffset.y < - 100) {
+        CGFloat offset = MAX(scrollView.contentOffset.y * -1, 0);
+        scrollView.contentInset = UIEdgeInsetsMake(offset, 0.0f, 0.0f, 0.0f);
+        [self showNotes:NO Animated:YES];
+    }
+}
+
+- (void)noteSelected:(Note *)note {
+    [self showNotes:YES Animated:YES];
+}
+
+- (void)showNotes:(BOOL)show Animated:(BOOL)animated {
+    void (^animationBlock)() = ^void () {
+        if (show) {
             CGRect headerViewFrame = self.headerView.frame;
-            headerViewFrame.size.height = self.view.frame.size.height;
+            headerViewFrame.size.height = 0;
             self.headerView.frame = headerViewFrame;
+            
+            CGRect scrollViewFrame = self.scrollView.frame;
+            scrollViewFrame.origin.y = 0;
+            self.scrollView.frame = scrollViewFrame;
+        } else {
+            CGRect headerViewFrame = self.headerView.frame;
+            headerViewFrame.size.height = 0;
+            self.headerView.frame = headerViewFrame;
+        
             self.headerView.layer.opacity = 0;
             
             CGRect scrollViewFrame = self.scrollView.frame;
             scrollViewFrame.origin.y = self.view.frame.size.height;
             self.scrollView.frame = scrollViewFrame;
-        }];
-    } else {
-        [scrollView setContentOffset:CGPointMake(0, 0) animated:YES];
-    }
-}
+        }
+        self.isAnimating = YES;
+    };
+    
+    void (^completionBlock)(BOOL finished) = ^void (BOOL finished) {
+        self.isAnimating = NO;
+        if (show) {
+            self.headerView.layer.opacity = 1;
+        }
+        self.scrollView.contentInset = UIEdgeInsetsZero;
+    };
 
-- (void)noteSelected:(Note *)note {
-    [UIView animateWithDuration:1.0 animations:^{
-        CGRect headerViewFrame = self.headerView.frame;
-        headerViewFrame.size.height = 0;
-        self.headerView.frame = headerViewFrame;
-        self.headerView.layer.opacity = 1;
-        
-        CGRect scrollViewFrame = self.scrollView.frame;
-        scrollViewFrame.origin.y = 0;
-        self.scrollView.frame = scrollViewFrame;
-    }];
+    if (animated) {
+        [UIView animateWithDuration:1.0 animations:animationBlock completion:completionBlock];
+    } else {
+        animationBlock();
+        completionBlock(YES);
+    }
+    self.showingNotes = show;
 }
 
 @end

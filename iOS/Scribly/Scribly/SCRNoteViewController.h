@@ -18,5 +18,7 @@
 @property (nonatomic, retain) UIView *headerView;
 @property (nonatomic, retain) SCRNoteGridView *categoryView;
 @property (nonatomic, retain) UILabel *releaseText;
+@property (nonatomic, assign) BOOL showingNotes;
+@property (nonatomic, assign) BOOL isAnimating;
 
 @end
