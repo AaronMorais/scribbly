@@ -31,8 +31,25 @@ module.exports = {
     },
 
     getCategories: function(id, cb) {
-        Note.findOne(this.id).done(function(err, note) {
-            cb([note.primaryCategory, note.secondaryCategory, note.tertiaryCategory]);
+        Note.findOne(id).done(function(err, note) {
+            if (!note) {
+                cb([]);
+                return;
+            }
+
+            var numCategoriesLookedUp = 0;
+
+            Category.find({
+                or: [
+                    {name: note.primaryCategory},
+                    {name: note.secondaryCategory},
+                    {name: note.tertiaryCategory}
+                ]
+            }).done(function(err, categories) {
+                cb(categories);
+            });
+
+            // cb([note.primaryCategory, note.secondaryCategory, note.tertiaryCategory]);
         });
     }
 };

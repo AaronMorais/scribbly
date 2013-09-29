@@ -27,9 +27,23 @@ module.exports = {
     createIfNotExists: function(name) {
         Category.findOne({name: name}).done(function(err, category) {
             if (!category) {
-                Category.create({name: name, score: 1}).done(function(err, ctg) {
-                });
+                Category.create({name: name, score: 1}).done(function(err, ctg) {});
             }
+        });
+    },
+
+    updateViewCount: function(id, viewCount) {
+        console.log(id);
+        Category.findOne(id).done(function(err, category) {
+            category.viewCount = viewCount;
+            category.save(function(){});
+        });
+    },
+
+    updateScore: function(id, score) {
+        Category.findOne(id).done(function(err, category) {
+            category.score = Math.round(score);
+            category.save(function(){});
         });
     }
 };

@@ -47,5 +47,46 @@ module.exports = {
                 }));
             });
         });
+    },
+
+    all: function(req, res) {
+        res.type("json");
+
+        var userToken = req.param('token');
+
+        if (!userToken) {res.send({error: "Invalid request!"}); return;}
+
+        var cats = [];
+        var finished = function() {
+            res.send(cats);
+        };
+
+        User.findOne({
+            token: userToken
+        }).done(function(err, user) {
+            if (err) console.log(util.inspect(err, false, null));
+
+            if (!user) {res.send({error: "Invalid token!"}); return;}
+
+            Category.find().done(function(err, categories) {
+                for (x in categories) {
+                    (function(ctgry, idx) {
+                        User.hasNoteInCategory(user.id, categories[x].name, function(has) {
+                            if (has) {
+                                cats.push(ctgry);
+                            }
+
+                            if (idx == categories.length-1) {
+                                finished();
+                            }
+                        });
+                    })(categories[x], x)
+                }
+
+                if (categories.length == 0) {
+                    finished();
+                }
+            });
+        });
     }
 };

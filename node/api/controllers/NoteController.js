@@ -10,7 +10,7 @@ var _ = require('underscore');
 
 module.exports = {
 
-    viewed: function(req, res) {
+    view: function(req, res) {
         res.type("json");
 
         id = req.param('id');
@@ -18,21 +18,24 @@ module.exports = {
 
         if (!id || !userToken) {res.send({error: "Invalid request!"}); return;}
 
-        Note.getCategories(function(categories) {
+        Note.getCategories(id, function(categories) {
             for (x in categories) {
-                categories[x].viewCount += 1;
-                categories[x].save(function(){});
+                Category.updateViewCount(categories[x].id, parseInt(categories[x].viewCount)+1);
             }
 
-            Category.find().done(function(err, categories) {
-                var totalScore = _.reduce(categories, function(total, category) {
-                    return total + category;
-                }, 0);
+            Category.find().done(function(err, allCategories) {
+                var total = _.reduce(allCategories, function(total, category) {
+                    return total + parseInt(category.viewCount);
+                }, 3);
 
-                total += 1;
-                
-                for (x in categories) {
-                    categories[x].score = categories[x].viewCount / total * 100;
+                for (x in allCategories) {
+                    Category.updateScore(allCategories[x].id, (allCategories[x].viewCount / total) * 100);
+                }
+
+                if (categories.length > 0)
+                    res.send({success: "Updated category scores."});
+                else {
+                    res.send({error: "That note does not exist."});
                 }
             });
         });
@@ -83,14 +86,10 @@ module.exports = {
                         if (err) console.log(util.inspect(err, false, null));
 
                         note.text = text;
-                        note.categories = noteCategories;
                         note.primaryCategory = noteCategories[0] || "Uncategorized";
                         note.secondaryCategory = noteCategories[1] || "Uncategorized";
                         note.tertiaryCategory = noteCategories[2] || "Uncategorized";
                         note.save(function() {});
-
-
-                        
 
                         res.send(note);
                     });
