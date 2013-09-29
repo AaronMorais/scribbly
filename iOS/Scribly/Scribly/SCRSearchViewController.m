@@ -38,8 +38,6 @@
         self.sDisplayController.delegate = self;
         self.sDisplayController.searchResultsDelegate  = self;
         self.sDisplayController.searchResultsDataSource = self;
-        
-//        [self queryForString:@"Kevin"];
     }
     return self;
 }
