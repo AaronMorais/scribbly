@@ -152,7 +152,8 @@
         NSString *token = [SCRNoteManager token];
         AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
         NSDictionary *params = @{@"token":token, @"id":self.note.identifier};
-        [manager GET:@"http://10.101.30.230:1337/note/view" parameters:params success:^(AFHTTPRequestOperation *operation, id responseObject) {
+        NSString *URL = [NSString stringWithFormat:@"%@/note/view", [SCRNoteManager apiEndpoint]];
+        [manager GET:URL parameters:params success:^(AFHTTPRequestOperation *operation, id responseObject) {
             } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
             NSLog(@"Error: %@", error);
         }];
@@ -228,7 +229,8 @@
         params = @{@"token":token, @"text":self.textView.text};
     }
     if (!self.requestedNoteID || self.note) {
-        [manager GET:@"http://10.101.30.230:1337/note/save" parameters:params success:^(AFHTTPRequestOperation *operation, id responseObject) {
+        NSString *URL = [NSString stringWithFormat:@"%@/note/save", [SCRNoteManager apiEndpoint]];
+        [manager GET:URL parameters:params success:^(AFHTTPRequestOperation *operation, id responseObject) {
             [[SCRNoteManager sharedSingleton] addNoteWithText:responseObject[@"text"] WithID:responseObject[@"id"] WithCategory:responseObject[@"category"]];
             Note *note = [[SCRNoteManager sharedSingleton] getNoteWithID:responseObject[@"id"]];
             if (!self.note && note) {
@@ -265,7 +267,8 @@
         NSString *name = self.category.name;
         name = name ? : self.note.category;
         NSDictionary *params = @{@"token":token, @"name":name};
-        [manager GET:@"http://10.101.30.230:1337/category/notes" parameters:params success:^(AFHTTPRequestOperation *operation, id responseObject) {
+        NSString *URL = [NSString stringWithFormat:@"%@/category/notes", [SCRNoteManager apiEndpoint]];
+        [manager GET:URL parameters:params success:^(AFHTTPRequestOperation *operation, id responseObject) {
             [[SCRNoteManager sharedSingleton] clearNotes];
             NSArray *jsonResponseObject = (NSArray *)responseObject;
             for (NSDictionary *jsonCategory in jsonResponseObject) {
