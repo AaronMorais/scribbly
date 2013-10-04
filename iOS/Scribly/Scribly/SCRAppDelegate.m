@@ -19,18 +19,6 @@
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
-    NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
-    [prefs objectForKey:@"userToken"];
-    if (![prefs objectForKey:@"userToken"]) {
-        AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
-        [manager GET:@"http://10.101.30.230:1337/user/create" parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
-            NSDictionary *jsonResponseObject = (NSDictionary *)responseObject;
-            NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
-            [prefs setObject:jsonResponseObject[@"token"] forKey:@"userToken"];
-        } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-            NSLog(@"Error: %@", error);
-        }];
-    }
     self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
     // Override point for customization after application launch.
     self.window.rootViewController = [[UINavigationController alloc] initWithRootViewController:[[SCRCategoryGridViewController alloc] init]];

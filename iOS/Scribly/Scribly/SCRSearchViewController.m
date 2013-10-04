@@ -90,8 +90,7 @@
 }
 
 - (void)queryForString:(NSString *)query {
-    NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
-    NSString *token = [prefs objectForKey:@"userToken"];
+    NSString *token = [SCRNoteManager token];
     AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
     NSDictionary *params = @{@"token":token, @"query":query};
     [manager GET:@"http://10.101.30.230:1337/note/search" parameters:params success:^(AFHTTPRequestOperation *operation, id responseObject) {

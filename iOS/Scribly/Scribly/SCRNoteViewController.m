@@ -149,8 +149,7 @@
         self.note = note;
         self.textView.text = note.text;
         [self showNotes:YES Animated:YES];
-        NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
-        NSString *token = [prefs objectForKey:@"userToken"];
+        NSString *token = [SCRNoteManager token];
         AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
         NSDictionary *params = @{@"token":token, @"id":self.note.identifier};
         [manager GET:@"http://10.101.30.230:1337/note/view" parameters:params success:^(AFHTTPRequestOperation *operation, id responseObject) {
@@ -220,8 +219,7 @@
     NSRange range = NSMakeRange(textView.text.length - 1, 1);
     [textView scrollRangeToVisible:range];
  
-    NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
-    NSString *token = [prefs objectForKey:@"userToken"];
+    NSString *token = [SCRNoteManager token];
     AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
     NSDictionary *params;
     if (self.note && self.note.identifier) {
@@ -262,8 +260,7 @@
 
 - (void)refresh {
     if ((self.category && self.category.name) || (self.note && self.note.category)) {
-        NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
-        NSString *token = [prefs objectForKey:@"userToken"];
+        NSString *token = [SCRNoteManager token];
         AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
         NSString *name = self.category.name;
         name = name ? : self.note.category;

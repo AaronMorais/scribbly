@@ -26,6 +26,25 @@ static SCRNoteManager *sharedSingleton;
   }
 }
 
++ (NSString *)apiEndpoint {
+    return @"http://162.243.28.10:1337";
+}
+
++ (NSString *)token {
+    NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
+    NSString *token = [prefs objectForKey:@"userToken"];
+    if (!token) {
+        NSString *urlString = [NSString stringWithFormat:@"%@/user/create",[SCRNoteManager apiEndpoint]];
+        NSURL *url = [NSURL URLWithString:urlString];
+        NSData *data = [NSData dataWithContentsOfURL:url];
+        NSError *error;
+        NSDictionary *jsonResultSet = (NSDictionary*)[NSJSONSerialization JSONObjectWithData:data options:kNilOptions error:&error];
+        token = jsonResultSet[@"token"];
+        [prefs setObject:token forKey:@"userToken"];
+    }
+    return token;
+}
+
 - (void)addNoteWithText:(NSString *)text WithID:(NSNumber *)ID WithCategory:(NSString *)category{
     Note *newEntry = [NSEntityDescription insertNewObjectForEntityForName:@"Note"
                                                     inManagedObjectContext:self.managedObjectContext];

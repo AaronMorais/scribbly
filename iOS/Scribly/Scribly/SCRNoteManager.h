@@ -15,6 +15,8 @@
 @property (assign, nonatomic) NSManagedObjectContext *managedObjectContext;
 
 + (SCRNoteManager *)sharedSingleton;
++ (NSString *)apiEndpoint;
++ (NSString *)token;
 - (void)addNoteWithText:(NSString *)text WithID:(NSNumber *)ID WithCategory:(NSString *)category;
 - (void)updateNote:(NSNumber *)ID WithText:(NSString *)text;
 - (void)addCategoryWithID:(NSNumber *)ID WithName:(NSString *)name WithScore:(NSNumber *)score;
