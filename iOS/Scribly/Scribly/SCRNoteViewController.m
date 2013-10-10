@@ -10,39 +10,103 @@
 #import "SCRNoteManager.h"
 #import <AFHTTPRequestOperationManager.h>
 
+@interface SCRNoteHeaderView : UIView
+
+@property (nonatomic, retain) UIView *headerSubview;
+@property (nonatomic, retain) UILabel *releaseText;
+
+@end
+
+@implementation SCRNoteHeaderView
+
+- (id)initWithFrame:(CGRect)frame {
+    if ((self = [super initWithFrame:frame])) {
+        UIView *headerSubview = [[UIView alloc] init];
+        headerSubview.backgroundColor = [UIColor colorWithWhite:0.8627f alpha:1.0];
+        headerSubview.clipsToBounds = YES;
+        headerSubview.layer.cornerRadius = 5.0f;
+        [self addSubview:headerSubview];
+        _headerSubview = headerSubview;
+        
+        UILabel *releaseText = [[UILabel alloc] init];
+        releaseText.text = @"View Categories";
+        [releaseText sizeToFit];
+        releaseText.clipsToBounds = YES;
+        releaseText.layer.masksToBounds = YES;
+        [self addSubview:releaseText];
+        _releaseText = releaseText;
+    }
+    return self;
+}
+
+- (void)layoutSubviews {
+    [super layoutSubviews];
+    self.releaseText.center = self.center;
+    self.headerSubview.frame = CGRectInset(self.bounds, 15, 15);
+    if (self.frame.size.height < 50) {
+        self.releaseText.hidden = YES;
+    } else {
+        self.releaseText.hidden = NO;
+    }
+}
+
+@end
+
 @interface SCRNoteViewController ()
+
+@property (nonatomic, retain) UITableView *tableView;
+
+@property (nonatomic, retain) SCRNoteHeaderView *noteHeaderView;
+
+@property (nonatomic, retain) UIScrollView *noteScrollView;
+@property (nonatomic, retain) UITextView *noteTextView;
+
+@property (nonatomic, retain) NoteCategory *category;
+@property (nonatomic, retain) Note *currentNote;
+@property (nonatomic, retain) NSArray *categoryNotes;
+
+@property (nonatomic, assign) BOOL isAnimating;
+@property (nonatomic, assign) BOOL requestedNoteID;
+
+@property (nonatomic, retain) SCRNoteManager *noteManager;
+@property (nonatomic, assign) SCRNoteViewControllerMode mode;
 
 @end
 
 @implementation SCRNoteViewController
 
-// TODO: make a designated initializer
 - (id)initWithCategory:(NoteCategory *)category {
-    self = [super init];
+    self = [self initWithMode:SCRNoteViewControllerModeCategory];
     if (self) {
-        self.showingNotes = (category == nil);
-        self.edgesForExtendedLayout = UIRectEdgeNone;
-        self.navigationItem.title = @"Notes";
-        self.category = category;
-        self.notes = [NSArray array];
-        self.requestedNoteID = NO;
-        self.showingKeyboard = NO;
+        _category = category;
     }
     return self;
 }
 
 - (id)initWithNote:(Note *)note{
-    self = [super init];
+    self = [self initWithMode:SCRNoteViewControllerModeNoteViewing];
     if (self) {
-        self.showingNotes = (note != nil);
-        self.edgesForExtendedLayout = UIRectEdgeNone;
-        self.navigationItem.title = @"Notes";
-        self.notes = @[note];
-        self.note = note;
-        self.requestedNoteID = YES;
-        self.showingKeyboard = NO;
+        _categoryNotes = @[note];
+        _currentNote = note;
+        _requestedNoteID = YES;
     }
     return self;
+}
+
+- (id)initWithMode:(SCRNoteViewControllerMode)mode {
+    self = [super init];
+    if (self) {
+        self.edgesForExtendedLayout = UIRectEdgeNone;
+        self.navigationItem.title = @"Notes";
+        _mode = mode;
+        _categoryNotes = @[];
+        _requestedNoteID = NO;
+    }
+    return self;
+}
+
+- (void)dealloc {
+    self.view.gestureRecognizers = nil;
 }
 
 - (void)viewDidLoad {
@@ -51,84 +115,148 @@
     self.tableView.frame = self.view.bounds;
     self.tableView.delegate = self;
     self.tableView.dataSource = self;
+    self.tableView.contentInset = UIEdgeInsetsMake(0, 0, 60, 0);
     [self.view addSubview:self.tableView];
     
     self.noteManager = [SCRNoteManager sharedSingleton];
     
-    NSArray *notes = [self.noteManager getNotes];
-    for(Note *note in notes) {
-        NSLog(@"%@, %@", note.text, note.identifier);
-    }
+    self.noteScrollView = [[UIScrollView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height)];
+    self.noteScrollView.delegate = self;
+    self.noteScrollView.bounces = YES;
+    self.noteScrollView.contentSize = CGSizeMake(self.noteScrollView.frame.size.width, self.noteScrollView.frame.size.height);
+    self.noteScrollView.alwaysBounceVertical = YES;
+    [self.noteScrollView setShowsVerticalScrollIndicator:NO];
+    self.noteScrollView.backgroundColor = [UIColor whiteColor];
+    [self.view addSubview:self.noteScrollView];
     
-    NSArray *categories = [self.noteManager getCategories];
-    for(NoteCategory *category in categories) {
-        NSLog(@"%@, %@, %@", category.identifier, category.name, category.score);
-    }
+    self.noteTextView = [[UITextView alloc] initWithFrame:self.view.bounds];
+    self.noteTextView.font = [UIFont systemFontOfSize:18];
+    self.noteTextView.clipsToBounds = NO;
+    self.noteTextView.delegate = self;
+    [self.noteScrollView addSubview:self.noteTextView];
     
-    _newButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAdd target:self action:@selector(newNote)];
-    self.navigationItem.rightBarButtonItem = _newButton;
+    self.noteHeaderView = [[SCRNoteHeaderView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 0)];
+    self.noteHeaderView.backgroundColor = [UIColor whiteColor];
+    self.noteHeaderView.clipsToBounds = YES;
+    [self.view addSubview:self.noteHeaderView];
     
-    self.scrollView = [[UIScrollView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height)];
-    self.scrollView.delegate = self;
-    self.scrollView.bounces = YES;
-    self.scrollView.contentSize = CGSizeMake(self.scrollView.frame.size.width, self.scrollView.frame.size.height);
-    self.scrollView.alwaysBounceVertical = YES;
-    [self.scrollView setShowsVerticalScrollIndicator:NO];
-    self.scrollView.backgroundColor = [UIColor whiteColor];
-    [self.view addSubview:self.scrollView];
+    [self showNotes:[self isShowingNotes] Animated:NO];
     
-    self.textView = [[UITextView alloc] initWithFrame:self.view.bounds];
-    self.textView.font = [UIFont systemFontOfSize:18];
-    self.textView.clipsToBounds = NO;
-    self.textView.delegate = self;
-    [self.scrollView addSubview:self.textView];
-    
-    self.headerView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 0)];
-    self.headerView.backgroundColor = [UIColor whiteColor];
-    self.headerView.clipsToBounds = YES;
-    [self.view addSubview:self.headerView];
-    
-    self.headerSubview = [[UIView alloc] init];
-    self.headerSubview.backgroundColor = [UIColor colorWithWhite:0.8627f alpha:1.0];
-    self.headerSubview.clipsToBounds = YES;
-    self.headerSubview.layer.cornerRadius = 5.0f;
-    [self.headerView addSubview:self.headerSubview];
-    
-    self.releaseText = [[UILabel alloc] init];
-    self.releaseText.text = @"View Categories";
-    [self.releaseText sizeToFit];
-    self.releaseText.center = self.headerView.center;
-    self.releaseText.clipsToBounds = YES;
-    self.releaseText.layer.masksToBounds = YES;
-    [self.headerView addSubview:self.releaseText];
-    
-    [self showNotes:self.showingNotes Animated:NO];
-    
-    if (self.showingNotes) {
-        [self.textView becomeFirstResponder];
-    }
     self.view.backgroundColor = [UIColor whiteColor];
-    [self.view setNeedsLayout];
-}
-
-- (void)dealloc {
-    self.view.gestureRecognizers = nil;
-}
-
-- (void)newNote {
-    self.note = nil;
-    self.category = nil;
-    self.requestedNoteID = NO;
-    self.textView.text = @"";
-    self.navigationItem.title = @"Notes";
-    [self showNotes:YES Animated:YES];
-    [self.textView becomeFirstResponder];
 }
 
 - (void)viewWillAppear:(BOOL)animated {
     [self refresh];
-    self.tableView.contentInset = UIEdgeInsetsMake(0, 0, 60, 0);
 }
+
+- (void)setMode:(SCRNoteViewControllerMode)mode {
+    switch (mode) {
+      case SCRNoteViewControllerModeCategory:
+      case SCRNoteViewControllerModeNoteViewing:
+        self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAdd target:self action:@selector(newNote)];;
+        break;
+      case SCRNoteViewControllerModeNoteEditing:
+        self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"Done" style:UIBarButtonItemStyleDone target:self action:@selector(dismissKeyboard)];;
+        break;
+    }
+    _mode = mode;
+}
+
+- (BOOL)isShowingNotes {
+    return (self.mode == SCRNoteViewControllerModeNoteEditing || self.mode == SCRNoteViewControllerModeNoteViewing);
+}
+
+- (void)newNote {
+    self.currentNote = nil;
+    self.category = nil;
+    self.requestedNoteID = NO;
+    self.noteTextView.text = @"";
+    self.navigationItem.title = @"Notes";
+    [self showNotes:YES Animated:YES];
+}
+
+- (void)dismissKeyboard {
+    [self.noteTextView resignFirstResponder];
+}
+
+- (void)refresh {
+    if ((self.category && self.category.name) || (self.currentNote && self.currentNote.category)) {
+        NSString *token = [SCRNoteManager token];
+        AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
+        NSString *name = self.category.name;
+        name = name ? : self.currentNote.category;
+        NSDictionary *params = @{@"token":token, @"name":name};
+        NSString *URL = [NSString stringWithFormat:@"%@/category/notes", [SCRNoteManager apiEndpoint]];
+        [manager GET:URL parameters:params success:^(AFHTTPRequestOperation *operation, id responseObject) {
+            if ([responseObject isKindOfClass:[NSDictionary class]] && responseObject[@"error"] != nil) {
+                [[NSUserDefaults standardUserDefaults] setObject:nil forKey:@"userToken"];
+            } else {
+                [[SCRNoteManager sharedSingleton] clearNotes];
+                NSArray *jsonResponseObject = (NSArray *)responseObject;
+                for (NSDictionary *jsonCategory in jsonResponseObject) {
+                    [[SCRNoteManager sharedSingleton] addNoteWithText:jsonCategory[@"text"] WithID:jsonCategory[@"id"] WithCategory:jsonCategory[@"category"]];
+                }
+                self.categoryNotes = [[SCRNoteManager sharedSingleton] getNotes];
+                [self.tableView reloadData];
+            }
+        } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+            NSLog(@"Error: %@", error);
+        }];
+    }
+    [self refreshTitle];
+}
+
+- (void)refreshTitle {
+    NSString *title = nil;
+    if (self.category && self.category.name) {
+        title = self.category.name;
+    } else if(self.currentNote && self.currentNote.category) {
+        title = self.currentNote.category;
+    } else {
+        title = @"Notes";
+    }
+    self.title = title;
+}
+
+- (void)showNotes:(BOOL)show Animated:(BOOL)animated {
+    [self refresh];
+    if (self.currentNote) {
+        self.noteTextView.text = self.currentNote.text;
+    }
+
+    void (^animationBlock)() = ^void () {
+        self.isAnimating = YES;
+        CGRect scrollViewFrame = self.noteScrollView.frame;
+        if (show) {
+            self.noteHeaderView.layer.opacity = 1;
+            scrollViewFrame.origin.y = 0;
+        } else {
+            self.noteHeaderView.layer.opacity = 0;
+            scrollViewFrame.origin.y = self.view.frame.size.height;
+        }
+        self.noteScrollView.frame = scrollViewFrame;
+    };
+    
+    void (^completionBlock)(BOOL finished) = ^void (BOOL finished) {
+        self.isAnimating = NO;
+        if (show) {
+            [self.noteTextView becomeFirstResponder];
+        } else {
+            [self.noteTextView resignFirstResponder];
+        }
+        self.noteScrollView.contentInset = UIEdgeInsetsZero;
+        self.mode = show ? SCRNoteViewControllerModeNoteViewing : SCRNoteViewControllerModeCategory;
+    };
+
+    if (animated) {
+        [UIView animateWithDuration:0.3 animations:animationBlock completion:completionBlock];
+    } else {
+        animationBlock();
+        completionBlock(YES);
+    }
+}
+
+#pragma mark TableView Methods
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
     return 45.0f;
@@ -139,18 +267,17 @@
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    return [self.notes count];
+    return [self.categoryNotes count];
 }
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
-    Note *note = [[SCRNoteManager sharedSingleton] getNotes][indexPath.row];
+    Note *note = self.categoryNotes[indexPath.row];
     if (note) {
-        self.note = note;
-        self.textView.text = note.text;
+        self.currentNote = note;
         [self showNotes:YES Animated:YES];
         NSString *token = [SCRNoteManager token];
         AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
-        NSDictionary *params = @{@"token":token, @"id":self.note.identifier};
+        NSDictionary *params = @{@"token":token, @"id":self.currentNote.identifier};
         NSString *URL = [NSString stringWithFormat:@"%@/note/view", [SCRNoteManager apiEndpoint]];
         [manager GET:URL parameters:params success:^(AFHTTPRequestOperation *operation, id responseObject) {
             if ([responseObject isKindOfClass:[NSDictionary class]] && responseObject[@"error"] != nil) {
@@ -164,73 +291,45 @@
 }
 
 -(UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
-    static NSString *MyIdentifier = @"MyIdentifier";
+    static NSString *cellID = @"cellIdentifier";
 
-    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:MyIdentifier];
+    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:cellID];
 
-    if (cell == nil) {
+    if (!cell) {
         cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault
-                                      reuseIdentifier:MyIdentifier];
+                                      reuseIdentifier:cellID];
     }
-    if (self.notes) {
-        Note *note = [self.notes objectAtIndex:indexPath.row];
-        cell.textLabel.text = note.text;
-        self.requestedNoteID = YES;
+    if (self.categoryNotes && [self.categoryNotes count] > indexPath.row) {
+        Note *note = [self.categoryNotes objectAtIndex:indexPath.row];
+        if (note) {
+            cell.textLabel.text = note.text;
+            self.requestedNoteID = YES;
+        }
     }
     return cell;
 }
 
-- (void)scrollViewDidScroll:(UIScrollView *)scrollView {
-    if (scrollView != self.tableView) {
-        if (self.isAnimating) {
-            CGFloat offset = MAX(scrollView.contentOffset.y * -1, 0);
-            scrollView.contentInset = UIEdgeInsetsMake(offset, 0.0f, 0.0f, 0.0f);
-        }
-        if (scrollView.contentOffset.y <= 0) {
-            CGRect headerViewFrame = self.headerView.frame;
-            headerViewFrame.size.height = - scrollView.contentOffset.y;
-            self.headerView.frame = headerViewFrame;
-            self.headerSubview.frame = CGRectInset(self.headerView.bounds, 15, 15);
-            if (self.headerView.frame.size.height < 50) {
-                self.releaseText.hidden = YES;
-            } else {
-                self.releaseText.hidden = NO;
-            }
-            self.releaseText.center = self.headerView.center;
-        }
-    }
-}
-
-- (void)scrollViewDidEndDragging:(UIScrollView *)scrollView willDecelerate:(BOOL)decelerate {
-    if (scrollView != self.tableView) {
-        if (scrollView.contentOffset.y < - 100) {
-            CGFloat offset = MAX(scrollView.contentOffset.y * -1, 0);
-            scrollView.contentInset = UIEdgeInsetsMake(offset, 0.0f, 0.0f, 0.0f);
-            [self showNotes:NO Animated:YES];
-        }
-    }
-}
+#pragma mark UITextViewDelegate
 
 - (void)textViewDidBeginEditing:(UITextView *)textView {
-    UIBarButtonItem *doneButton = [[UIBarButtonItem alloc] initWithTitle:@"Done" style:UIBarButtonItemStyleDone target:self action:@selector(dismissKeyboard)];
-    self.navigationItem.rightBarButtonItem = doneButton;
-    self.textView.frame = CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height - 216);
-    self.showingKeyboard = YES;
+    self.mode = SCRNoteViewControllerModeNoteEditing;
+    self.noteTextView.frame = CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height - 216);
 }
 
 - (void)textViewDidChange:(UITextView *)textView {
+    // TODO: Fix scrolling
     NSRange range = NSMakeRange(textView.text.length - 1, 1);
     [textView scrollRangeToVisible:range];
  
     NSString *token = [SCRNoteManager token];
     AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
     NSDictionary *params;
-    if (self.note && self.note.identifier) {
-        params = @{@"token":token, @"text":self.textView.text, @"id":self.note.identifier};
+    if (self.currentNote && self.currentNote.identifier) {
+        params = @{@"token":token, @"text":self.noteTextView.text, @"id":self.currentNote.identifier};
     } else {
-        params = @{@"token":token, @"text":self.textView.text};
+        params = @{@"token":token, @"text":self.noteTextView.text};
     }
-    if (!self.requestedNoteID || self.note) {
+    if (!self.requestedNoteID || self.currentNote) {
         NSString *URL = [NSString stringWithFormat:@"%@/note/save", [SCRNoteManager apiEndpoint]];
         [manager GET:URL parameters:params success:^(AFHTTPRequestOperation *operation, id responseObject) {
             if ([responseObject isKindOfClass:[NSDictionary class]] && responseObject[@"error"] != nil) {
@@ -238,8 +337,8 @@
             } else {
                 [[SCRNoteManager sharedSingleton] addNoteWithText:responseObject[@"text"] WithID:responseObject[@"id"] WithCategory:responseObject[@"category"]];
                 Note *note = [[SCRNoteManager sharedSingleton] getNoteWithID:responseObject[@"id"]];
-                if (!self.note && note) {
-                    self.note = note;
+                if (!self.currentNote && note) {
+                    self.currentNote = note;
                 }
                 [[SCRNoteManager sharedSingleton] addCategoryWithID:nil WithName:responseObject[@"primaryCategory"] WithScore:responseObject[@"score"]];
                 NoteCategory *category = [[SCRNoteManager sharedSingleton] getNoteCategoryWithName:responseObject[@"primaryCategory"]];
@@ -252,113 +351,42 @@
         }];
         self.requestedNoteID = YES;
     }
+    [self refreshTitle];
 }
 
 - (void)textViewDidEndEditing:(UITextView *)textView {
-    self.navigationItem.rightBarButtonItem = _newButton;
-    CGSize textHeight = [textView sizeThatFits:CGSizeMake(self.view.frame.size.width, INT_MAX)];
-    self.textView.frame = CGRectMake(0, 0, self.view.frame.size.width, textHeight.height);
-    self.scrollView.contentSize = CGSizeMake(self.view.frame.size.width, MAX(textHeight.height, self.scrollView.contentSize.height + 100));
-    self.showingKeyboard = NO;
-}
-
-- (void)dismissKeyboard {
-    [self.textView resignFirstResponder];
-}
-
-- (void)refresh {
-    if ((self.category && self.category.name) || (self.note && self.note.category)) {
-        NSString *token = [SCRNoteManager token];
-        AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
-        NSString *name = self.category.name;
-        name = name ? : self.note.category;
-        NSDictionary *params = @{@"token":token, @"name":name};
-        NSString *URL = [NSString stringWithFormat:@"%@/category/notes", [SCRNoteManager apiEndpoint]];
-        [manager GET:URL parameters:params success:^(AFHTTPRequestOperation *operation, id responseObject) {
-            if ([responseObject isKindOfClass:[NSDictionary class]] && responseObject[@"error"] != nil) {
-                [[NSUserDefaults standardUserDefaults] setObject:nil forKey:@"userToken"];
-            } else {
-                [[SCRNoteManager sharedSingleton] clearNotes];
-                NSArray *jsonResponseObject = (NSArray *)responseObject;
-                for (NSDictionary *jsonCategory in jsonResponseObject) {
-                    [[SCRNoteManager sharedSingleton] addNoteWithText:jsonCategory[@"text"] WithID:jsonCategory[@"id"] WithCategory:jsonCategory[@"category"]];
-                }
-                self.notes = [[SCRNoteManager sharedSingleton] getNotes];
-                [self.tableView reloadData];
-            }
-        } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-            NSLog(@"Error: %@", error);
-        }];
-    }
-}
-
-- (void)setCategory:(NoteCategory *)category {
-    _category = category;
-    if (category.name) {
-        self.navigationItem.title = category.name;
-    }
-}
-
-- (void)setNote:(Note *)note {
-    _note = note;
-    if (note.category) {
-        self.navigationItem.title = note.category;
-    }
-}
-
-- (void)showNotes:(BOOL)show Animated:(BOOL)animated {
-    if (!show) {
-        [self refresh];
-    } else {
-        if (self.note) {
-            self.textView.text = self.note.text;
-            [self setNote:self.note];
-            [self refresh];
-        }
-    }
-
-    void (^animationBlock)() = ^void () {
-        if (show) {
-            CGRect headerViewFrame = self.headerView.frame;
-            headerViewFrame.size.height = 0;
-            self.headerView.frame = headerViewFrame;
-            
-            CGRect scrollViewFrame = self.scrollView.frame;
-            scrollViewFrame.origin.y = 0;
-            self.scrollView.frame = scrollViewFrame;
-        } else {
-            CGRect headerViewFrame = self.headerView.frame;
-            headerViewFrame.size.height = 0;
-            self.headerView.frame = headerViewFrame;
-        
-            self.headerView.layer.opacity = 0;
-            
-            CGRect scrollViewFrame = self.scrollView.frame;
-            scrollViewFrame.origin.y = self.view.frame.size.height;
-            self.scrollView.frame = scrollViewFrame;
-        }
-        self.isAnimating = YES;
-    };
+    self.mode = SCRNoteViewControllerModeNoteViewing;
     
-    void (^completionBlock)(BOOL finished) = ^void (BOOL finished) {
-        self.isAnimating = NO;
-        if (show) {
-            self.headerView.layer.opacity = 1;
+    // TODO: Fix scrollview contentsize
+    CGSize textHeight = [textView sizeThatFits:CGSizeMake(self.view.frame.size.width, INT_MAX)];
+    self.noteTextView.frame = CGRectMake(0, 0, self.view.frame.size.width, textHeight.height);
+    self.noteScrollView.contentSize = CGSizeMake(self.view.frame.size.width, MAX(textHeight.height, self.noteScrollView.contentSize.height + 100));
+}
+
+#pragma mark UIScrollViewDelegate
+
+- (void)scrollViewDidScroll:(UIScrollView *)scrollView {
+    if (scrollView != self.tableView) {
+        if (self.isAnimating) {
+            CGFloat offset = MAX(scrollView.contentOffset.y * -1, 0);
+            scrollView.contentInset = UIEdgeInsetsMake(offset, 0.0f, 0.0f, 0.0f);
         }
-        self.scrollView.contentInset = UIEdgeInsetsZero;
-    };
-
-    if (!show) {
-        [self.textView resignFirstResponder];
+        if (scrollView.contentOffset.y <= 0) {
+            CGRect headerViewFrame = self.noteHeaderView.frame;
+            headerViewFrame.size.height = - scrollView.contentOffset.y;
+            self.noteHeaderView.frame = headerViewFrame;
+        }
     }
+}
 
-    if (animated) {
-        [UIView animateWithDuration:0.3 animations:animationBlock completion:completionBlock];
-    } else {
-        animationBlock();
-        completionBlock(YES);
+- (void)scrollViewDidEndDragging:(UIScrollView *)scrollView willDecelerate:(BOOL)decelerate {
+    if (scrollView != self.tableView) {
+        if (scrollView.contentOffset.y < - 100) {
+            CGFloat offset = MAX(scrollView.contentOffset.y * -1, 0);
+            scrollView.contentInset = UIEdgeInsetsMake(offset, 0.0f, 0.0f, 0.0f);
+            [self showNotes:NO Animated:YES];
+        }
     }
-    self.showingNotes = show;
 }
 
 @end

@@ -22,7 +22,7 @@
     self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
     // Override point for customization after application launch.
     self.window.rootViewController = [[UINavigationController alloc] initWithRootViewController:[[SCRCategoryViewController alloc] init]];
-    [(UINavigationController *)self.window.rootViewController pushViewController:[[SCRNoteViewController alloc] initWithCategory:nil] animated:NO];
+    [(UINavigationController *)self.window.rootViewController pushViewController:[[SCRNoteViewController alloc] initWithMode:SCRNoteViewControllerModeNoteEditing] animated:NO];
     [self.window makeKeyAndVisible];
     [AFNetworkActivityIndicatorManager sharedManager].enabled = YES;
     [self.window setTintColor:[UIColor orangeColor]];

@@ -6,8 +6,6 @@
 //  Copyright (c) 2013 Aaron Morais. All rights reserved.
 //
 
-#import <Foundation/Foundation.h>
-
 @interface SCRNetworkManager : NSObject
 
 + (SCRNetworkManager *)sharedSingleton;

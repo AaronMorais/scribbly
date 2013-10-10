@@ -136,7 +136,7 @@
 }
 
 - (void)newNoteButtonPressed:(id)sender {
-    [self.navigationController pushViewController:[[SCRNoteViewController alloc] initWithCategory:nil] animated:YES];
+    [self.navigationController pushViewController:[[SCRNoteViewController alloc] initWithMode:SCRNoteViewControllerModeNoteEditing] animated:YES];
 }
 
 #pragma mark SCRSearchDelegate
