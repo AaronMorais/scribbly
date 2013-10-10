@@ -8,24 +8,8 @@
 
 #import <Foundation/Foundation.h>
 
-@interface SCRNetwork : NSObject<NSURLConnectionDelegate>
-{
-    NSString *_token;
-    NSMutableData *_responseData;
-    NSURLConnection *_tokenConnection;
-    NSURLConnection *_categoriesConnection;
-    NSURLConnection *_categoryNotesConnection;
-    NSURLConnection *_noteViewConnection;
-    NSURLConnection *_noteSaveConnection;
-    NSURLConnection *_searchConnection;
-}
+@interface SCRNetwork : NSObject
 
 + (SCRNetwork *)sharedSingleton;
-- (void)getUserToken;
-- (void)getAllCategoriesWithQuery:(NSString *)query;
-- (void)getNotesForCategoryWithName:(NSString *)name;
-- (void)getNotesViewWithID:(NSNumber *)ID;
-- (void)saveNotesWithText:(NSString *)text;
-- (void)saveNotesWithID:(NSNumber *)ID WithText:(NSString *)text;
-- (void)getSearcWithQuery:(NSString *)query;
+
 @end
