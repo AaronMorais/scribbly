@@ -25,7 +25,6 @@
         self.category = category;
         self.notes = [NSArray array];
         self.requestedNoteID = NO;
-        self.navigationController.navigationBar.tintColor = [UIColor orangeColor];
         self.showingKeyboard = NO;
     }
     return self;
@@ -40,7 +39,6 @@
         self.notes = @[note];
         self.note = note;
         self.requestedNoteID = YES;
-        self.navigationController.navigationBar.tintColor = [UIColor orangeColor];
         self.showingKeyboard = NO;
     }
     return self;

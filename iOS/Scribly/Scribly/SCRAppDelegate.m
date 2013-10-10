@@ -24,9 +24,8 @@
     self.window.rootViewController = [[UINavigationController alloc] initWithRootViewController:[[SCRCategoryViewController alloc] init]];
     [(UINavigationController *)self.window.rootViewController pushViewController:[[SCRNoteViewController alloc] initWithCategory:nil] animated:NO];
     [self.window makeKeyAndVisible];
-    self.window.rootViewController.navigationController.navigationBar.barStyle = UIBarStyleBlackOpaque;
-    self.window.rootViewController.navigationController.navigationBar.tintColor = [UIColor orangeColor];
     [AFNetworkActivityIndicatorManager sharedManager].enabled = YES;
+    [self.window setTintColor:[UIColor orangeColor]];
     return YES;
 }
 

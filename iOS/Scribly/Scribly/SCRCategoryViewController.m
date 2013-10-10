@@ -11,10 +11,6 @@
 #import "NoteCategory.h"
 #import <AFHTTPRequestOperationManager.h>
 
-@interface SCRCategoryViewController ()
-
-@end
-
 @interface SCRCollectionViewCell : UICollectionViewCell
 
 @property(nonatomic, retain) UILabel *descriptionLabel;
@@ -26,14 +22,12 @@
 - (id)initWithFrame:(CGRect)frame {
     self = [super initWithFrame:frame];
     if (self) {
-        self.descriptionLabel = [[UILabel alloc] init];
-        self.descriptionLabel.text = @"";
-        self.descriptionLabel.textAlignment =
-        NSTextAlignmentCenter;
-        self.descriptionLabel.textColor = [UIColor whiteColor];
-        self.descriptionLabel.minimumScaleFactor = 0.5;
-        self.descriptionLabel.adjustsFontSizeToFitWidth = YES;
-        [self.contentView addSubview:self.descriptionLabel];
+        _descriptionLabel = [[UILabel alloc] init];
+        _descriptionLabel.textAlignment = NSTextAlignmentCenter;
+        _descriptionLabel.textColor = [UIColor whiteColor];
+        _descriptionLabel.minimumScaleFactor = 0.5;
+        _descriptionLabel.adjustsFontSizeToFitWidth = YES;
+        [self.contentView addSubview:_descriptionLabel];
     }
     return self;
 }
@@ -41,9 +35,19 @@
 - (void)layoutSubviews {
     CGRect descriptionFrame = self.bounds;
     descriptionFrame.size.width -= 20;
-    descriptionFrame.origin.x = (self.bounds.size.width - descriptionFrame.size.width) / 2;
+    descriptionFrame.origin.x = floorf((self.bounds.size.width - descriptionFrame.size.width) / 2);
     self.descriptionLabel.frame = descriptionFrame;
 }
+
+@end
+
+
+@interface SCRCategoryViewController ()
+
+@property (nonatomic, retain) NSArray *categories;
+@property (nonatomic, retain) NSMutableArray *categoryColors;
+@property (nonatomic, retain) UICollectionView *collectionView;
+@property (nonatomic, retain) UINavigationController *searchNavController;
 
 @end
 
@@ -52,11 +56,10 @@
 - (id)init {
     self = [super init];
     if (self) {
-        self.colors = [NSMutableArray array];
+        self.categoryColors = [NSMutableArray array];
         self.navigationItem.title = @"Categories";
         self.edgesForExtendedLayout = UIRectEdgeNone;
         self.categories = [[SCRNoteManager sharedSingleton] getCategories];
-        self.navigationController.navigationBar.tintColor = [UIColor orangeColor];
     }
     return self;
 }
@@ -158,12 +161,12 @@
     NoteCategory *category = self.categories[indexPath.row];
     cell.descriptionLabel.text = category.name;
     
-    if ([self.colors count] <= indexPath.row ) {
+    if ([self.categoryColors count] <= indexPath.row ) {
         UIColor *color = [self randomFlatColorWithSeed:indexPath.row];
         cell.backgroundColor = color;
-        [self.colors addObject:color];
+        [self.categoryColors addObject:color];
     } else {
-        cell.backgroundColor = [self.colors objectAtIndex:indexPath.row];
+        cell.backgroundColor = [self.categoryColors objectAtIndex:indexPath.row];
     }
     return cell;
 }
