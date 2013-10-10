@@ -10,6 +10,6 @@
 #import "RFQuiltLayout.h"
 #import "SCRSearchViewController.h"
 
-@interface SCRCategoryViewController : UIViewController <RFQuiltLayoutDelegate, UICollectionViewDelegate, UICollectionViewDataSource, SCRSearchDelegateProtocol>
+@interface SCRCategoryViewController : UIViewController <RFQuiltLayoutDelegate, UICollectionViewDelegate, UICollectionViewDataSource, SCRSearchDelegate>
 
 @end

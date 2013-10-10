@@ -16,6 +16,7 @@
 
 @implementation SCRNoteViewController
 
+// TODO: make a designated initializer
 - (id)initWithCategory:(NoteCategory *)category {
     self = [super init];
     if (self) {

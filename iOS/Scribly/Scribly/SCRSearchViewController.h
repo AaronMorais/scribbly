@@ -9,17 +9,13 @@
 #import <UIKit/UIKit.h>
 #import "Note.h"
 
-@protocol SCRSearchDelegateProtocol <NSObject>
+@protocol SCRSearchDelegate <NSObject>
 - (void)presentNoteControllerWithNote:(Note *)note;
 @end
 
 @interface SCRSearchViewController : UIViewController <UISearchDisplayDelegate, UITableViewDelegate, UITableViewDataSource>
 
-@property (nonatomic, readonly) UITableView *tableView;
-@property (nonatomic, readonly) UISearchBar *searchBar;
-@property (nonatomic, retain) NSArray *notes;
-@property (nonatomic, retain) UISearchDisplayController *sDisplayController;
-@property (nonatomic, assign) id<SCRSearchDelegateProtocol> delegate;
+@property (nonatomic, assign) id<SCRSearchDelegate> delegate;
 
 @end
 

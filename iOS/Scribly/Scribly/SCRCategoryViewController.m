@@ -93,18 +93,7 @@
     [self refreshCategories];
 }
 
-- (void)searchButtonPressed:(id)sender {
-    SCRSearchViewController *searchViewController = [[SCRSearchViewController alloc] init];
-    searchViewController.delegate = self;
-    UINavigationController *searchNavController = [[UINavigationController alloc] initWithRootViewController:searchViewController];
-    searchNavController.modalTransitionStyle = UIModalTransitionStyleCoverVertical;
-    self.searchNavController = searchNavController;
-    [self.navigationController presentViewController:searchNavController animated:YES completion:nil];
-}
-
-- (void)newNoteButtonPressed:(id)sender {
-    [self.navigationController pushViewController:[[SCRNoteViewController alloc] initWithCategory:nil] animated:YES];
-}
+# pragma mark Category methods
 
 - (void)refreshCategories {
     NSString *token = [SCRNoteManager token];
@@ -135,7 +124,30 @@
     _categories = [categories sortedArrayUsingDescriptors:@[sortDescriptor]];
 }
 
-#pragma mark CollectionView Delegate and DataSource Methods
+#pragma mark Button actions
+
+- (void)searchButtonPressed:(id)sender {
+    SCRSearchViewController *searchViewController = [[SCRSearchViewController alloc] init];
+    searchViewController.delegate = self;
+    UINavigationController *searchNavController = [[UINavigationController alloc] initWithRootViewController:searchViewController];
+    searchNavController.modalTransitionStyle = UIModalTransitionStyleCoverVertical;
+    self.searchNavController = searchNavController;
+    [self.navigationController presentViewController:searchNavController animated:YES completion:nil];
+}
+
+- (void)newNoteButtonPressed:(id)sender {
+    [self.navigationController pushViewController:[[SCRNoteViewController alloc] initWithCategory:nil] animated:YES];
+}
+
+#pragma mark SCRSearchDelegate
+
+- (void)presentNoteControllerWithNote:(Note *)note {
+    [self dismissViewControllerAnimated:NO completion:^{
+        [self.navigationController pushViewController:[[SCRNoteViewController alloc] initWithNote:note] animated:YES];
+    }];
+}
+
+#pragma mark UICollectionViewDelegate & UICollectionViewDataSource
 
 -(NSInteger)numberOfSectionsInCollectionView:(UICollectionView *)collectionView {
     return 1;
