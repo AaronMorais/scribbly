@@ -9,7 +9,7 @@
 #import "SCRAppDelegate.h"
 #import "SCRNoteViewController.h"
 #import "SCRCategoryGridViewController.h"
-#import <AFHTTPRequestOperationManager.h>
+#import <AFNetworkActivityIndicatorManager.h>
 
 @implementation SCRAppDelegate
 
@@ -26,6 +26,7 @@
     [self.window makeKeyAndVisible];
     self.window.rootViewController.navigationController.navigationBar.barStyle = UIBarStyleBlackOpaque;
     self.window.rootViewController.navigationController.navigationBar.tintColor = [UIColor orangeColor];
+    [AFNetworkActivityIndicatorManager sharedManager].enabled = YES;
     return YES;
 }
 
