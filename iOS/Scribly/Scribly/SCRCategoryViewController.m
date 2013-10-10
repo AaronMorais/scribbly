@@ -9,6 +9,7 @@
 #import "SCRCategoryViewController.h"
 #import "SCRNoteViewController.h"
 #import "NoteCategory.h"
+#import "SCRNoteManager.h"
 #import <AFHTTPRequestOperationManager.h>
 
 @interface SCRCollectionViewCell : UICollectionViewCell
@@ -56,33 +57,43 @@
 - (id)init {
     self = [super init];
     if (self) {
-        self.categoryColors = [NSMutableArray array];
         self.navigationItem.title = @"Categories";
         self.edgesForExtendedLayout = UIRectEdgeNone;
-        self.categories = [[SCRNoteManager sharedSingleton] getCategories];
+        _categoryColors = [NSMutableArray array];
+        _categories = [[SCRNoteManager sharedSingleton] getCategories];
     }
     return self;
 }
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    UIBarButtonItem *searchButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemSearch target:self action:@selector(presentSearchModal)];
+    // add search button to navigation bar
+    UIBarButtonItem *searchButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemSearch target:self action:@selector(searchButtonPressed:)];
     self.navigationItem.leftBarButtonItem = searchButton;
+    // add new note button to navigation bar
+    UIBarButtonItem *newNoteButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAdd target:self action:@selector(newNoteButtonPressed:)];
+    self.navigationItem.rightBarButtonItem = newNoteButton;
+    // initialize layout for collection view
     RFQuiltLayout *layout = [[RFQuiltLayout alloc] init];
     layout.direction = UICollectionViewScrollDirectionVertical;
     layout.blockPixels = CGSizeMake(106.6, 101);
+    layout.delegate = self;
+    // initialize collection view
     self.collectionView = [[UICollectionView alloc] initWithFrame:self.view.bounds collectionViewLayout:layout];
     self.collectionView.delegate = self;
     self.collectionView.dataSource = self;
     self.collectionView.backgroundColor = [UIColor whiteColor];
-    layout.delegate = self;
+    self.collectionView.contentInset = UIEdgeInsetsMake(0, 0, 60, 0);
     [self.collectionView registerClass:[SCRCollectionViewCell class] forCellWithReuseIdentifier:@"cellIdentifier"];
     [self.view addSubview:self.collectionView];
-    UIBarButtonItem *newButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAdd target:self action:@selector(newNote)];
-    self.navigationItem.rightBarButtonItem = newButton;
 }
 
-- (void)presentSearchModal {
+- (void)viewWillAppear:(BOOL)animated {
+    // refresh only if neccessary
+    [self refreshCategories];
+}
+
+- (void)searchButtonPressed:(id)sender {
     SCRSearchViewController *searchViewController = [[SCRSearchViewController alloc] init];
     searchViewController.delegate = self;
     UINavigationController *searchNavController = [[UINavigationController alloc] initWithRootViewController:searchViewController];
@@ -91,22 +102,11 @@
     [self.navigationController presentViewController:searchNavController animated:YES completion:nil];
 }
 
-- (void)presentNoteControllerWithNote:(Note *)note {
-    [self.searchNavController dismissViewControllerAnimated:YES completion:^{
-        [self.navigationController pushViewController:[[SCRNoteViewController alloc] initWithNote:note] animated:YES];
-    }];
-}
-
-- (void)newNote {
+- (void)newNoteButtonPressed:(id)sender {
     [self.navigationController pushViewController:[[SCRNoteViewController alloc] initWithCategory:nil] animated:YES];
 }
 
-- (void)viewWillAppear:(BOOL)animated {
-    [self refresh];
-    self.collectionView.contentInset = UIEdgeInsetsMake(0, 0, 60, 0);
-}
-
-- (void)refresh {
+- (void)refreshCategories {
     NSString *token = [SCRNoteManager token];
     AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
     NSDictionary *params = @{@"token":token};
@@ -129,13 +129,10 @@
     }];
 }
 
-- (NSArray *)categories {
-    NSSortDescriptor *sortDescriptor;
-    sortDescriptor = [[NSSortDescriptor alloc] initWithKey:@"score"
-                                                  ascending:NO];
-    NSArray *sortDescriptors = [NSArray arrayWithObject:sortDescriptor];
-
-    return [_categories sortedArrayUsingDescriptors:sortDescriptors];
+- (void)setCategories:(NSArray *)categories {
+    // sort categories by most popular
+    NSSortDescriptor *sortDescriptor = [[NSSortDescriptor alloc] initWithKey:@"score" ascending:NO];
+    _categories = [categories sortedArrayUsingDescriptors:@[sortDescriptor]];
 }
 
 #pragma mark CollectionView Delegate and DataSource Methods
@@ -152,40 +149,45 @@
     [self.navigationController pushViewController:[[SCRNoteViewController alloc] initWithCategory:self.categories[indexPath.row]] animated:YES];
 }
 
-- (UICollectionViewCell *)collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath
-{
-    SCRCollectionViewCell *cell=(SCRCollectionViewCell *)[collectionView dequeueReusableCellWithReuseIdentifier:@"cellIdentifier" forIndexPath:indexPath];
-
-    cell.backgroundColor = [self randomFlatColorWithSeed:indexPath.row];
+- (UICollectionViewCell *)collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath {
+    SCRCollectionViewCell *cell= (SCRCollectionViewCell *)[collectionView dequeueReusableCellWithReuseIdentifier:@"cellIdentifier" forIndexPath:indexPath];
     
-    NoteCategory *category = self.categories[indexPath.row];
-    cell.descriptionLabel.text = category.name;
+    if ([self.categories count] > indexPath.row) {
+        NoteCategory *category = self.categories[indexPath.row];
+        if (category) {
+            cell.descriptionLabel.text = category.name;
+        }
+    }
     
+    UIColor *color;
+    // we store the category colors so that the indices get only one color per app load
     if ([self.categoryColors count] <= indexPath.row ) {
-        UIColor *color = [self randomFlatColorWithSeed:indexPath.row];
-        cell.backgroundColor = color;
+        color = [self randomFlatColorForIndex:indexPath.row];
         [self.categoryColors addObject:color];
     } else {
-        cell.backgroundColor = [self.categoryColors objectAtIndex:indexPath.row];
+        color = [self.categoryColors objectAtIndex:indexPath.row];
+    }
+    if (color) {
+        cell.backgroundColor = color;
     }
     return cell;
 }
 
-- (UIColor *)randomFlatColorWithSeed:(NSInteger)seed {
+- (UIColor *)randomFlatColorForIndex:(NSInteger)index {
     NSArray *colors;
-    if (seed % 4 == 0) {
+    if (index % 4 == 0) {
         colors = @[
             [UIColor colorWithRed:231.0f/256.0f green:76.0f/256.0f blue:60.0f/256.0f alpha:1.0f],
             [UIColor colorWithRed:230.0f/256.0f green:126.0f/256.0f blue:34.0f/256.0f alpha:1.0f],
             [UIColor colorWithRed:241.0f/256.0f green:196.0f/256.0f blue:15.0f/256.0f alpha:1.0f],
             [UIColor colorWithRed:155.0f/256.f green:89.0f/256.0f blue:182.0f/256.0f alpha:1.0f]];
-    } else if(seed % 4 == 1) {
+    } else if(index % 4 == 1) {
         colors = @[
             [UIColor colorWithRed:192.0f/256.0f green:57.0f/256.0f blue:43.0f/256.0f alpha:1.0f],
             [UIColor colorWithRed:230.0f/256.0f green:126.0f/256.0f blue:34.0f/256.0f alpha:1.0f],
             [UIColor colorWithRed:243.0f/256.0f green:156.0f/256.0f blue:18.0f/256.0f alpha:1.0f],
             [UIColor colorWithRed:142.0f/256.0f green:68.0f/256.0f blue:173.0f/256.0f alpha:1.0f]];
-    } else if(seed % 4 == 2) {
+    } else if(index % 4 == 2) {
         colors = @[
             [UIColor colorWithRed:52.0f/256.0f green:152.0f/256.0f blue:219.0f/256.0f alpha:1.0f],
             [UIColor colorWithRed:46.0f/256.0f green:204.0f/256.0f blue:113.0f/256.0f alpha:1.0f],
@@ -202,8 +204,7 @@
     return [colors objectAtIndex:rnd];
 }
 
-- (CGSize)collectionView:(UICollectionView *)collectionView layout:(UICollectionViewLayout*)collectionViewLayout sizeForItemAtIndexPath:(NSIndexPath *)indexPath
-{
+- (CGSize)collectionView:(UICollectionView *)collectionView layout:(UICollectionViewLayout*)collectionViewLayout sizeForItemAtIndexPath:(NSIndexPath *)indexPath {
     return CGSizeMake(50, 50);
 }
 

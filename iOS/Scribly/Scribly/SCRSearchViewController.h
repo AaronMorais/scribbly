@@ -19,7 +19,7 @@
 @property (nonatomic, readonly) UISearchBar *searchBar;
 @property (nonatomic, retain) NSArray *notes;
 @property (nonatomic, retain) UISearchDisplayController *sDisplayController;
-@property (nonatomic, retain) id<SCRSearchDelegateProtocol> delegate;
+@property (nonatomic, assign) id<SCRSearchDelegateProtocol> delegate;
 
 @end
 
