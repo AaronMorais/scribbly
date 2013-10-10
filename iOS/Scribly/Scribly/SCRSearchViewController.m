@@ -95,20 +95,24 @@
     NSDictionary *params = @{@"token":token, @"query":query};
     NSString *URL = [NSString stringWithFormat:@"%@/note/search", [SCRNoteManager apiEndpoint]];
     [manager GET:URL parameters:params success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        [[SCRNoteManager sharedSingleton] clearNotes];
-        if ([responseObject isKindOfClass:[NSArray class]]) {
-            NSArray *jsonResponseObject = (NSArray *)responseObject;
-            for (NSDictionary *jsonCategory in jsonResponseObject) {
-                if([jsonCategory isKindOfClass:[NSDictionary class]]) {
-                    [[SCRNoteManager sharedSingleton] addNoteWithText:jsonCategory[@"text"] WithID:jsonCategory[@"id"] WithCategory:jsonCategory[@"primaryCategory"]];
+        if ([responseObject isKindOfClass:[NSDictionary class]] && responseObject[@"error"] != nil) {
+            [[NSUserDefaults standardUserDefaults] setObject:nil forKey:@"userToken"];
+        } else {
+            [[SCRNoteManager sharedSingleton] clearNotes];
+            if ([responseObject isKindOfClass:[NSArray class]]) {
+                NSArray *jsonResponseObject = (NSArray *)responseObject;
+                for (NSDictionary *jsonCategory in jsonResponseObject) {
+                    if([jsonCategory isKindOfClass:[NSDictionary class]]) {
+                        [[SCRNoteManager sharedSingleton] addNoteWithText:jsonCategory[@"text"] WithID:jsonCategory[@"id"] WithCategory:jsonCategory[@"primaryCategory"]];
+                    }
                 }
+            } else if([responseObject isKindOfClass:[NSDictionary class]]) {
+                [[SCRNoteManager sharedSingleton] addNoteWithText:responseObject[@"text"] WithID:responseObject[@"id"] WithCategory:responseObject[@"primaryCategory"]];
             }
-        } else if([responseObject isKindOfClass:[NSDictionary class]]) {
-            [[SCRNoteManager sharedSingleton] addNoteWithText:responseObject[@"text"] WithID:responseObject[@"id"] WithCategory:responseObject[@"primaryCategory"]];
+            self.notes = [[SCRNoteManager sharedSingleton] getNotes];
+            [self.tableView reloadData];
+            [self.sDisplayController.searchResultsTableView reloadData];
         }
-        self.notes = [[SCRNoteManager sharedSingleton] getNotes];
-        [self.tableView reloadData];
-        [self.sDisplayController.searchResultsTableView reloadData];
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         NSLog(@"Error: %@", error);
     }];

@@ -154,6 +154,9 @@
         NSDictionary *params = @{@"token":token, @"id":self.note.identifier};
         NSString *URL = [NSString stringWithFormat:@"%@/note/view", [SCRNoteManager apiEndpoint]];
         [manager GET:URL parameters:params success:^(AFHTTPRequestOperation *operation, id responseObject) {
+            if ([responseObject isKindOfClass:[NSDictionary class]] && responseObject[@"error"] != nil) {
+                [[NSUserDefaults standardUserDefaults] setObject:nil forKey:@"userToken"];
+            }
             } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
             NSLog(@"Error: %@", error);
         }];
@@ -231,15 +234,19 @@
     if (!self.requestedNoteID || self.note) {
         NSString *URL = [NSString stringWithFormat:@"%@/note/save", [SCRNoteManager apiEndpoint]];
         [manager GET:URL parameters:params success:^(AFHTTPRequestOperation *operation, id responseObject) {
-            [[SCRNoteManager sharedSingleton] addNoteWithText:responseObject[@"text"] WithID:responseObject[@"id"] WithCategory:responseObject[@"category"]];
-            Note *note = [[SCRNoteManager sharedSingleton] getNoteWithID:responseObject[@"id"]];
-            if (!self.note && note) {
-                self.note = note;
-            }
-            [[SCRNoteManager sharedSingleton] addCategoryWithID:nil WithName:responseObject[@"primaryCategory"] WithScore:responseObject[@"score"]];
-            NoteCategory *category = [[SCRNoteManager sharedSingleton] getNoteCategoryWithName:responseObject[@"primaryCategory"]];
-            if (category) {
-                self.category = category;
+            if ([responseObject isKindOfClass:[NSDictionary class]] && responseObject[@"error"] != nil) {
+                [[NSUserDefaults standardUserDefaults] setObject:nil forKey:@"userToken"];
+            } else {
+                [[SCRNoteManager sharedSingleton] addNoteWithText:responseObject[@"text"] WithID:responseObject[@"id"] WithCategory:responseObject[@"category"]];
+                Note *note = [[SCRNoteManager sharedSingleton] getNoteWithID:responseObject[@"id"]];
+                if (!self.note && note) {
+                    self.note = note;
+                }
+                [[SCRNoteManager sharedSingleton] addCategoryWithID:nil WithName:responseObject[@"primaryCategory"] WithScore:responseObject[@"score"]];
+                NoteCategory *category = [[SCRNoteManager sharedSingleton] getNoteCategoryWithName:responseObject[@"primaryCategory"]];
+                if (category) {
+                    self.category = category;
+                }
             }
         } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
             NSLog(@"Error: %@", error);
@@ -269,13 +276,17 @@
         NSDictionary *params = @{@"token":token, @"name":name};
         NSString *URL = [NSString stringWithFormat:@"%@/category/notes", [SCRNoteManager apiEndpoint]];
         [manager GET:URL parameters:params success:^(AFHTTPRequestOperation *operation, id responseObject) {
-            [[SCRNoteManager sharedSingleton] clearNotes];
-            NSArray *jsonResponseObject = (NSArray *)responseObject;
-            for (NSDictionary *jsonCategory in jsonResponseObject) {
-                [[SCRNoteManager sharedSingleton] addNoteWithText:jsonCategory[@"text"] WithID:jsonCategory[@"id"] WithCategory:jsonCategory[@"category"]];
+            if ([responseObject isKindOfClass:[NSDictionary class]] && responseObject[@"error"] != nil) {
+                [[NSUserDefaults standardUserDefaults] setObject:nil forKey:@"userToken"];
+            } else {
+                [[SCRNoteManager sharedSingleton] clearNotes];
+                NSArray *jsonResponseObject = (NSArray *)responseObject;
+                for (NSDictionary *jsonCategory in jsonResponseObject) {
+                    [[SCRNoteManager sharedSingleton] addNoteWithText:jsonCategory[@"text"] WithID:jsonCategory[@"id"] WithCategory:jsonCategory[@"category"]];
+                }
+                self.notes = [[SCRNoteManager sharedSingleton] getNotes];
+                [self.tableView reloadData];
             }
-            self.notes = [[SCRNoteManager sharedSingleton] getNotes];
-            [self.tableView reloadData];
         } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
             NSLog(@"Error: %@", error);
         }];

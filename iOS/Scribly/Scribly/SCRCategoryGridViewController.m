@@ -109,13 +109,18 @@
     NSDictionary *params = @{@"token":token};
     NSString *URL = [NSString stringWithFormat:@"%@/category/all", [SCRNoteManager apiEndpoint]];
     [manager GET:URL parameters:params success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        [[SCRNoteManager sharedSingleton] clearCategories];
-        NSArray *jsonResponseObject = (NSArray *)responseObject;
-        for (NSDictionary *jsonCategory in jsonResponseObject) {
-            [[SCRNoteManager sharedSingleton] addCategoryWithID:jsonCategory[@"id"] WithName:jsonCategory[@"name"] WithScore:jsonCategory[@"score"]];
+        if ([responseObject isKindOfClass:[NSDictionary class]] && responseObject[@"error"] != nil) {
+            [[NSUserDefaults standardUserDefaults] setObject:nil forKey:@"userToken"];
+        } else {
+            [[SCRNoteManager sharedSingleton] clearCategories];
+            NSArray *jsonResponseObject = (NSArray *)responseObject;
+            for (NSDictionary *jsonCategory in jsonResponseObject) {
+                [[SCRNoteManager sharedSingleton] addCategoryWithID:jsonCategory[@"id"] WithName:jsonCategory[@"name"] WithScore:jsonCategory[@"score"]];
+            }
+            self.categories = [[SCRNoteManager sharedSingleton] getCategories];
+            [self.collectionView reloadSections:[NSIndexSet indexSetWithIndexesInRange:NSMakeRange(0, self.collectionView.numberOfSections)]];
+
         }
-        self.categories = [[SCRNoteManager sharedSingleton] getCategories];
-        [self.collectionView reloadData];
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         NSLog(@"Error: %@", error);
     }];
@@ -133,7 +138,7 @@
 #pragma mark CollectionView Delegate and DataSource Methods
 
 -(NSInteger)numberOfSectionsInCollectionView:(UICollectionView *)collectionView {
-    return [self.categories count];
+    return 1;
 }
 
 - (NSInteger)collectionView:(UICollectionView *)collectionView numberOfItemsInSection:(NSInteger)section {
