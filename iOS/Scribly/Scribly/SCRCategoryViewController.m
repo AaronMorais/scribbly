@@ -6,12 +6,12 @@
 //  Copyright (c) 2013 Aaron Morais. All rights reserved.
 //
 
-#import "SCRCategoryGridViewController.h"
+#import "SCRCategoryViewController.h"
 #import "SCRNoteViewController.h"
 #import "NoteCategory.h"
 #import <AFHTTPRequestOperationManager.h>
 
-@interface SCRCategoryGridViewController ()
+@interface SCRCategoryViewController ()
 
 @end
 
@@ -47,7 +47,7 @@
 
 @end
 
-@implementation SCRCategoryGridViewController
+@implementation SCRCategoryViewController
 
 - (id)init {
     self = [super init];

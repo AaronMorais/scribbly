@@ -8,7 +8,6 @@
 
 #import <UIKit/UIKit.h>
 #import "SCRNoteManager.h"
-#import "SCRNoteGridView.h"
 #import "NoteCategory.h"
 #import "Note.h"
 
@@ -25,7 +24,6 @@ UIBarButtonItem *_newButton;
 @property (nonatomic, retain) UIView *headerView;
 @property (nonatomic, retain) UIView *headerSubview;
 @property (nonatomic, retain) UITextView *textView;
-@property (nonatomic, retain) SCRNoteGridView *categoryView;
 @property (nonatomic, retain) UILabel *releaseText;
 @property (nonatomic, assign) BOOL showingNotes;
 @property (nonatomic, assign) BOOL showingKeyboard;

@@ -8,7 +8,7 @@
 
 #import "SCRAppDelegate.h"
 #import "SCRNoteViewController.h"
-#import "SCRCategoryGridViewController.h"
+#import "SCRCategoryViewController.h"
 #import <AFNetworkActivityIndicatorManager.h>
 
 @implementation SCRAppDelegate
@@ -21,7 +21,7 @@
 {
     self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
     // Override point for customization after application launch.
-    self.window.rootViewController = [[UINavigationController alloc] initWithRootViewController:[[SCRCategoryGridViewController alloc] init]];
+    self.window.rootViewController = [[UINavigationController alloc] initWithRootViewController:[[SCRCategoryViewController alloc] init]];
     [(UINavigationController *)self.window.rootViewController pushViewController:[[SCRNoteViewController alloc] initWithCategory:nil] animated:NO];
     [self.window makeKeyAndVisible];
     self.window.rootViewController.navigationController.navigationBar.barStyle = UIBarStyleBlackOpaque;

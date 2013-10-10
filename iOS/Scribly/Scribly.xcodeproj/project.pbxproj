@@ -24,11 +24,9 @@
 		9367236E17F7751A00CE0209 /* ScriblyTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 9367236D17F7751A00CE0209 /* ScriblyTests.m */; };
 		9367237917F775C500CE0209 /* SCRNoteViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 9367237817F775C500CE0209 /* SCRNoteViewController.m */; };
 		9367238B17F77E2100CE0209 /* SCRNoteManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 9367238A17F77E2100CE0209 /* SCRNoteManager.m */; };
-		9367239117F79B8F00CE0209 /* SCRNoteGridView.m in Sources */ = {isa = PBXBuildFile; fileRef = 9367239017F79B8F00CE0209 /* SCRNoteGridView.m */; };
 		9367239417F7A06300CE0209 /* NoteCategory.m in Sources */ = {isa = PBXBuildFile; fileRef = 9367239317F7A06300CE0209 /* NoteCategory.m */; };
-		9367239A17F7B01300CE0209 /* SCRCategoryGridViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 9367239917F7B01300CE0209 /* SCRCategoryGridViewController.m */; };
-		9367239D17F7B06A00CE0209 /* SCRCategoryGridView.m in Sources */ = {isa = PBXBuildFile; fileRef = 9367239C17F7B06A00CE0209 /* SCRCategoryGridView.m */; };
-		936723A317F7ECEE00CE0209 /* SCRNetwork.m in Sources */ = {isa = PBXBuildFile; fileRef = 936723A217F7ECEE00CE0209 /* SCRNetwork.m */; };
+		9367239A17F7B01300CE0209 /* SCRCategoryViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 9367239917F7B01300CE0209 /* SCRCategoryViewController.m */; };
+		936723A317F7ECEE00CE0209 /* SCRNetworkManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 936723A217F7ECEE00CE0209 /* SCRNetworkManager.m */; };
 		936723B917F8422000CE0209 /* RFQuiltLayout.m in Sources */ = {isa = PBXBuildFile; fileRef = 936723B817F8422000CE0209 /* RFQuiltLayout.m */; };
 		936723BC17F870D600CE0209 /* SCRSearchViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 936723BB17F870D600CE0209 /* SCRSearchViewController.m */; };
 		93C4292A17F8A7BC00E9E0A4 /* Note.h in Resources */ = {isa = PBXBuildFile; fileRef = 93C4292817F8A7BC00E9E0A4 /* Note.h */; };
@@ -70,22 +68,18 @@
 		9367237817F775C500CE0209 /* SCRNoteViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SCRNoteViewController.m; sourceTree = "<group>"; };
 		9367238917F77E2100CE0209 /* SCRNoteManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SCRNoteManager.h; sourceTree = "<group>"; };
 		9367238A17F77E2100CE0209 /* SCRNoteManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SCRNoteManager.m; sourceTree = "<group>"; };
-		9367238F17F79B8F00CE0209 /* SCRNoteGridView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SCRNoteGridView.h; sourceTree = "<group>"; };
-		9367239017F79B8F00CE0209 /* SCRNoteGridView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SCRNoteGridView.m; sourceTree = "<group>"; };
 		9367239217F7A06300CE0209 /* NoteCategory.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = NoteCategory.h; path = ../NoteCategory.h; sourceTree = "<group>"; };
 		9367239317F7A06300CE0209 /* NoteCategory.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = NoteCategory.m; path = ../NoteCategory.m; sourceTree = "<group>"; };
-		9367239817F7B01300CE0209 /* SCRCategoryGridViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SCRCategoryGridViewController.h; sourceTree = "<group>"; };
-		9367239917F7B01300CE0209 /* SCRCategoryGridViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SCRCategoryGridViewController.m; sourceTree = "<group>"; };
-		9367239B17F7B06A00CE0209 /* SCRCategoryGridView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SCRCategoryGridView.h; sourceTree = "<group>"; };
-		9367239C17F7B06A00CE0209 /* SCRCategoryGridView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SCRCategoryGridView.m; sourceTree = "<group>"; };
-		936723A117F7ECEE00CE0209 /* SCRNetwork.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SCRNetwork.h; sourceTree = "<group>"; };
-		936723A217F7ECEE00CE0209 /* SCRNetwork.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SCRNetwork.m; sourceTree = "<group>"; };
+		9367239817F7B01300CE0209 /* SCRCategoryViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SCRCategoryViewController.h; sourceTree = "<group>"; };
+		9367239917F7B01300CE0209 /* SCRCategoryViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SCRCategoryViewController.m; sourceTree = "<group>"; };
+		936723A117F7ECEE00CE0209 /* SCRNetworkManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SCRNetworkManager.h; sourceTree = "<group>"; };
+		936723A217F7ECEE00CE0209 /* SCRNetworkManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SCRNetworkManager.m; sourceTree = "<group>"; };
 		936723B717F8422000CE0209 /* RFQuiltLayout.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RFQuiltLayout.h; sourceTree = "<group>"; };
 		936723B817F8422000CE0209 /* RFQuiltLayout.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RFQuiltLayout.m; sourceTree = "<group>"; };
 		936723BA17F870D600CE0209 /* SCRSearchViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SCRSearchViewController.h; sourceTree = "<group>"; };
 		936723BB17F870D600CE0209 /* SCRSearchViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SCRSearchViewController.m; sourceTree = "<group>"; };
-		93C4292817F8A7BC00E9E0A4 /* Note.h */ = {isa = PBXFileReference; lastKnownFileType = file; name = Note.h; path = ../Note.h; sourceTree = "<group>"; };
-		93C4292917F8A7BC00E9E0A4 /* Note.m */ = {isa = PBXFileReference; lastKnownFileType = file; name = Note.m; path = ../Note.m; sourceTree = "<group>"; };
+		93C4292817F8A7BC00E9E0A4 /* Note.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Note.h; path = ../Note.h; sourceTree = "<group>"; };
+		93C4292917F8A7BC00E9E0A4 /* Note.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = Note.m; path = ../Note.m; sourceTree = "<group>"; };
 		EF1A857AE02440FA9998FC8B /* Pods.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = Pods.xcconfig; path = Pods/Pods.xcconfig; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -116,6 +110,52 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		934A8EB51806688500A2A89D /* Managers */ = {
+			isa = PBXGroup;
+			children = (
+				9367238A17F77E2100CE0209 /* SCRNoteManager.m */,
+				9367238917F77E2100CE0209 /* SCRNoteManager.h */,
+				936723A117F7ECEE00CE0209 /* SCRNetworkManager.h */,
+				936723A217F7ECEE00CE0209 /* SCRNetworkManager.m */,
+			);
+			name = Managers;
+			sourceTree = "<group>";
+		};
+		934A8EB61806689400A2A89D /* Controllers */ = {
+			isa = PBXGroup;
+			children = (
+				9367237717F775C500CE0209 /* SCRNoteViewController.h */,
+				9367237817F775C500CE0209 /* SCRNoteViewController.m */,
+				9367239817F7B01300CE0209 /* SCRCategoryViewController.h */,
+				9367239917F7B01300CE0209 /* SCRCategoryViewController.m */,
+				936723BA17F870D600CE0209 /* SCRSearchViewController.h */,
+				936723BB17F870D600CE0209 /* SCRSearchViewController.m */,
+			);
+			name = Controllers;
+			sourceTree = "<group>";
+		};
+		934A8EB8180668B500A2A89D /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				9367235917F7751A00CE0209 /* Images.xcassets */,
+				9367235617F7751A00CE0209 /* Scribly.xcdatamodeld */,
+				93C4292817F8A7BC00E9E0A4 /* Note.h */,
+				93C4292917F8A7BC00E9E0A4 /* Note.m */,
+				9367239217F7A06300CE0209 /* NoteCategory.h */,
+				9367239317F7A06300CE0209 /* NoteCategory.m */,
+			);
+			name = Models;
+			sourceTree = "<group>";
+		};
+		934A8EB9180668EB00A2A89D /* 3rd Party */ = {
+			isa = PBXGroup;
+			children = (
+				936723B717F8422000CE0209 /* RFQuiltLayout.h */,
+				936723B817F8422000CE0209 /* RFQuiltLayout.m */,
+			);
+			name = "3rd Party";
+			sourceTree = "<group>";
+		};
 		9367233617F7751A00CE0209 = {
 			isa = PBXGroup;
 			children = (
@@ -152,31 +192,11 @@
 		9367234A17F7751A00CE0209 /* Scribly */ = {
 			isa = PBXGroup;
 			children = (
-				9367235317F7751A00CE0209 /* SCRAppDelegate.h */,
-				9367235417F7751A00CE0209 /* SCRAppDelegate.m */,
-				9367237717F775C500CE0209 /* SCRNoteViewController.h */,
-				9367237817F775C500CE0209 /* SCRNoteViewController.m */,
-				9367239817F7B01300CE0209 /* SCRCategoryGridViewController.h */,
-				9367239917F7B01300CE0209 /* SCRCategoryGridViewController.m */,
-				9367238F17F79B8F00CE0209 /* SCRNoteGridView.h */,
-				9367239017F79B8F00CE0209 /* SCRNoteGridView.m */,
-				9367239B17F7B06A00CE0209 /* SCRCategoryGridView.h */,
-				9367239C17F7B06A00CE0209 /* SCRCategoryGridView.m */,
-				9367235917F7751A00CE0209 /* Images.xcassets */,
-				9367235617F7751A00CE0209 /* Scribly.xcdatamodeld */,
-				93C4292817F8A7BC00E9E0A4 /* Note.h */,
-				93C4292917F8A7BC00E9E0A4 /* Note.m */,
-				9367239217F7A06300CE0209 /* NoteCategory.h */,
-				9367239317F7A06300CE0209 /* NoteCategory.m */,
-				9367238917F77E2100CE0209 /* SCRNoteManager.h */,
-				9367238A17F77E2100CE0209 /* SCRNoteManager.m */,
-				936723A117F7ECEE00CE0209 /* SCRNetwork.h */,
-				936723A217F7ECEE00CE0209 /* SCRNetwork.m */,
-				936723B717F8422000CE0209 /* RFQuiltLayout.h */,
-				936723B817F8422000CE0209 /* RFQuiltLayout.m */,
+				934A8EB8180668B500A2A89D /* Models */,
+				934A8EB61806689400A2A89D /* Controllers */,
+				934A8EB51806688500A2A89D /* Managers */,
+				934A8EB9180668EB00A2A89D /* 3rd Party */,
 				9367234B17F7751A00CE0209 /* Supporting Files */,
-				936723BA17F870D600CE0209 /* SCRSearchViewController.h */,
-				936723BB17F870D600CE0209 /* SCRSearchViewController.m */,
 			);
 			path = Scribly;
 			sourceTree = "<group>";
@@ -184,6 +204,8 @@
 		9367234B17F7751A00CE0209 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
+				9367235317F7751A00CE0209 /* SCRAppDelegate.h */,
+				9367235417F7751A00CE0209 /* SCRAppDelegate.m */,
 				9367234C17F7751A00CE0209 /* Scribly-Info.plist */,
 				9367234D17F7751A00CE0209 /* InfoPlist.strings */,
 				9367235017F7751A00CE0209 /* main.m */,
@@ -348,15 +370,13 @@
 			files = (
 				936723BC17F870D600CE0209 /* SCRSearchViewController.m in Sources */,
 				9367239417F7A06300CE0209 /* NoteCategory.m in Sources */,
-				936723A317F7ECEE00CE0209 /* SCRNetwork.m in Sources */,
-				9367239D17F7B06A00CE0209 /* SCRCategoryGridView.m in Sources */,
+				936723A317F7ECEE00CE0209 /* SCRNetworkManager.m in Sources */,
 				936723B917F8422000CE0209 /* RFQuiltLayout.m in Sources */,
 				9367235817F7751A00CE0209 /* Scribly.xcdatamodeld in Sources */,
 				9367235117F7751A00CE0209 /* main.m in Sources */,
-				9367239117F79B8F00CE0209 /* SCRNoteGridView.m in Sources */,
 				9367235517F7751A00CE0209 /* SCRAppDelegate.m in Sources */,
 				9367238B17F77E2100CE0209 /* SCRNoteManager.m in Sources */,
-				9367239A17F7B01300CE0209 /* SCRCategoryGridViewController.m in Sources */,
+				9367239A17F7B01300CE0209 /* SCRCategoryViewController.m in Sources */,
 				9367237917F775C500CE0209 /* SCRNoteViewController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

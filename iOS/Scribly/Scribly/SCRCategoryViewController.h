@@ -10,7 +10,7 @@
 #import "RFQuiltLayout.h"
 #import "SCRSearchViewController.h"
 
-@interface SCRCategoryGridViewController : UIViewController <RFQuiltLayoutDelegate, UICollectionViewDelegate, UICollectionViewDataSource, SCRSearchDelegateProtocol>
+@interface SCRCategoryViewController : UIViewController <RFQuiltLayoutDelegate, UICollectionViewDelegate, UICollectionViewDataSource, SCRSearchDelegateProtocol>
 
 @property (nonatomic, retain) NSArray *categories;
 @property NSMutableArray *colors;

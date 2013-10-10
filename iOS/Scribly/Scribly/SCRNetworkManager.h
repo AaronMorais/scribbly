@@ -1,5 +1,5 @@
 //
-//  SCRNetwork.h
+//  SCRNetworkManager.h
 //  Scribly
 //
 //  Created by Aaron Morais on 2013-09-28.
@@ -8,8 +8,8 @@
 
 #import <Foundation/Foundation.h>
 
-@interface SCRNetwork : NSObject
+@interface SCRNetworkManager : NSObject
 
-+ (SCRNetwork *)sharedSingleton;
++ (SCRNetworkManager *)sharedSingleton;
 
 @end
