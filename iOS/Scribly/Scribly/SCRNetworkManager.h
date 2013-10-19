@@ -6,8 +6,13 @@
 //  Copyright (c) 2013 Aaron Morais. All rights reserved.
 //
 
+#import "Note.h"
+
 @interface SCRNetworkManager : NSObject
 
 + (SCRNetworkManager *)sharedSingleton;
+- (NSString *)apiEndpoint;
+- (NSString *)userToken;
+- (void)trackViewForNote:(Note *)note;
 
 @end

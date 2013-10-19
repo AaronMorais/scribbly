@@ -9,8 +9,6 @@
 #import "SCRCategoryViewController.h"
 #import "SCRNoteViewController.h"
 #import "NoteCategory.h"
-#import "SCRNoteManager.h"
-#import <AFHTTPRequestOperationManager.h>
 
 @interface SCRCollectionViewCell : UICollectionViewCell
 
@@ -43,9 +41,10 @@
 @end
 
 
-@interface SCRCategoryViewController ()
+@interface SCRCategoryViewController () <NSFetchedResultsControllerDelegate> {
+    NSFetchedResultsController *_fetchedResultsController;
+}
 
-@property (nonatomic, retain) NSArray *categories;
 @property (nonatomic, retain) NSMutableArray *categoryColors;
 @property (nonatomic, retain) UICollectionView *collectionView;
 @property (nonatomic, retain) UINavigationController *searchNavController;
@@ -60,7 +59,6 @@
         self.navigationItem.title = @"Categories";
         self.edgesForExtendedLayout = UIRectEdgeNone;
         _categoryColors = [NSMutableArray array];
-        _categories = [[SCRNoteManager sharedSingleton] getCategories];
     }
     return self;
 }
@@ -89,39 +87,22 @@
 }
 
 - (void)viewWillAppear:(BOOL)animated {
-    // refresh only if neccessary
-    [self refreshCategories];
+    [super viewWillAppear:animated];
+    NSFetchRequest *fetchRequest = [NSFetchRequest fetchRequestWithEntityName:@"NoteCategory"];
+    fetchRequest.sortDescriptors = @[[NSSortDescriptor sortDescriptorWithKey:@"score" ascending:NO], [NSSortDescriptor sortDescriptorWithKey:@"name" ascending:NO]];
+    fetchRequest.returnsObjectsAsFaults = NO;
+    fetchRequest.includesPendingChanges = NO;
+    
+    _fetchedResultsController = [[NSFetchedResultsController alloc] initWithFetchRequest:fetchRequest managedObjectContext:[(id)[[UIApplication sharedApplication] delegate] managedObjectContext] sectionNameKeyPath:nil cacheName:nil];
+    _fetchedResultsController.delegate = self;
+    [_fetchedResultsController performFetch:nil];
+    [self.collectionView reloadData];
 }
 
-# pragma mark Category methods
+#pragma mark - NSFetchedResultsControllerDelegate
 
-- (void)refreshCategories {
-    NSString *token = [SCRNoteManager token];
-    AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
-    NSDictionary *params = @{@"token":token};
-    NSString *URL = [NSString stringWithFormat:@"%@/category/all", [SCRNoteManager apiEndpoint]];
-    [manager GET:URL parameters:params success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        if ([responseObject isKindOfClass:[NSDictionary class]] && responseObject[@"error"] != nil) {
-            [[NSUserDefaults standardUserDefaults] setObject:nil forKey:@"userToken"];
-        } else {
-            [[SCRNoteManager sharedSingleton] clearCategories];
-            NSArray *jsonResponseObject = (NSArray *)responseObject;
-            for (NSDictionary *jsonCategory in jsonResponseObject) {
-                [[SCRNoteManager sharedSingleton] addCategoryWithID:jsonCategory[@"id"] WithName:jsonCategory[@"name"] WithScore:jsonCategory[@"score"]];
-            }
-            self.categories = [[SCRNoteManager sharedSingleton] getCategories];
-            [self.collectionView reloadSections:[NSIndexSet indexSetWithIndexesInRange:NSMakeRange(0, self.collectionView.numberOfSections)]];
-
-        }
-    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-        NSLog(@"Error: %@", error);
-    }];
-}
-
-- (void)setCategories:(NSArray *)categories {
-    // sort categories by most popular
-    NSSortDescriptor *sortDescriptor = [[NSSortDescriptor alloc] initWithKey:@"score" ascending:NO];
-    _categories = [categories sortedArrayUsingDescriptors:@[sortDescriptor]];
+- (void)controllerDidChangeContent:(NSFetchedResultsController *)controller {
+    [self.collectionView reloadData];
 }
 
 #pragma mark Button actions
@@ -150,26 +131,23 @@
 #pragma mark UICollectionViewDelegate & UICollectionViewDataSource
 
 -(NSInteger)numberOfSectionsInCollectionView:(UICollectionView *)collectionView {
-    return 1;
+    return [[_fetchedResultsController fetchedObjects] count] > 0 ? 1 : 0;
 }
 
 - (NSInteger)collectionView:(UICollectionView *)collectionView numberOfItemsInSection:(NSInteger)section {
-    return [self.categories count];
+    return [[_fetchedResultsController fetchedObjects] count];
 }
 
 -(void)collectionView:(UICollectionView *)collectionView didSelectItemAtIndexPath:(NSIndexPath *)indexPath {
-    [self.navigationController pushViewController:[[SCRNoteViewController alloc] initWithCategory:self.categories[indexPath.row]] animated:YES];
+    NoteCategory *noteCategory = [_fetchedResultsController objectAtIndexPath:indexPath];
+    [self.navigationController pushViewController:[[SCRNoteViewController alloc] initWithCategory:noteCategory] animated:YES];
 }
 
 - (UICollectionViewCell *)collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath {
     SCRCollectionViewCell *cell= (SCRCollectionViewCell *)[collectionView dequeueReusableCellWithReuseIdentifier:@"cellIdentifier" forIndexPath:indexPath];
     
-    if ([self.categories count] > indexPath.row) {
-        NoteCategory *category = self.categories[indexPath.row];
-        if (category) {
-            cell.descriptionLabel.text = category.name;
-        }
-    }
+    NoteCategory *noteCategory = [_fetchedResultsController objectAtIndexPath:indexPath];
+    cell.descriptionLabel.text = noteCategory.name;
     
     UIColor *color;
     // we store the category colors so that the indices get only one color per app load
@@ -223,14 +201,14 @@
 #pragma mark – RFQuiltLayoutDelegate
 
 - (CGSize) blockSizeForItemAtIndexPath:(NSIndexPath *)indexPath {
-    NoteCategory *category = self.categories[indexPath.row];
-    if ([category.score intValue] > 60) {
+    NoteCategory *noteCategory = [_fetchedResultsController objectAtIndexPath:indexPath];
+    if ([noteCategory.score intValue] > 60) {
         return CGSizeMake(3, 2);
-    } else if ([category.score intValue] > 30) {
+    } else if ([noteCategory.score intValue] > 30) {
         return CGSizeMake(2, 2);
-    } else if ([category.score intValue] > 20) {
+    } else if ([noteCategory.score intValue] > 20) {
         return CGSizeMake(1, 2);
-    } else if ([category.score intValue] > 10) {
+    } else if ([noteCategory.score intValue] > 10) {
         return CGSizeMake(2, 1);
     } else {
         return CGSizeMake(1, 1);

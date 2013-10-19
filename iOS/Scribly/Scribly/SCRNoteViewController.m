@@ -7,8 +7,9 @@
 //
 
 #import "SCRNoteViewController.h"
-#import "SCRNoteManager.h"
-#import <AFHTTPRequestOperationManager.h>
+#import "SCRNetworkManager.h"
+#import <AFJSONRequestOperation.h>
+#import <AFHTTPClient.h>
 
 @interface SCRNoteHeaderView : UIView
 
@@ -52,23 +53,21 @@
 
 @end
 
-@interface SCRNoteViewController ()
-
+@interface SCRNoteViewController () <NSFetchedResultsControllerDelegate> {
+    NSFetchedResultsController *_fetchedResultsController;
+}
 @property (nonatomic, retain) UITableView *tableView;
-
 @property (nonatomic, retain) SCRNoteHeaderView *noteHeaderView;
-
 @property (nonatomic, retain) UIScrollView *noteScrollView;
 @property (nonatomic, retain) UITextView *noteTextView;
 
 @property (nonatomic, retain) NoteCategory *category;
-@property (nonatomic, retain) Note *currentNote;
-@property (nonatomic, retain) NSArray *categoryNotes;
+@property (nonatomic, retain) NSString *currentNoteText;
+@property (nonatomic, retain) NSString *currentNoteCategory;
+@property (nonatomic, retain) NSNumber *currentNoteIdentifier;
 
 @property (nonatomic, assign) BOOL isAnimating;
 @property (nonatomic, assign) BOOL requestedNoteID;
-
-@property (nonatomic, retain) SCRNoteManager *noteManager;
 @property (nonatomic, assign) SCRNoteViewControllerMode mode;
 
 @end
@@ -86,8 +85,9 @@
 - (id)initWithNote:(Note *)note{
     self = [self initWithMode:SCRNoteViewControllerModeNoteViewing];
     if (self) {
-        _categoryNotes = @[note];
-        _currentNote = note;
+        _currentNoteText = note.text;
+        _currentNoteCategory = note.category;
+        _currentNoteIdentifier = note.identifier;
         _requestedNoteID = YES;
     }
     return self;
@@ -99,7 +99,6 @@
         self.edgesForExtendedLayout = UIRectEdgeNone;
         self.navigationItem.title = @"Notes";
         _mode = mode;
-        _categoryNotes = @[];
         _requestedNoteID = NO;
     }
     return self;
@@ -117,8 +116,6 @@
     self.tableView.dataSource = self;
     self.tableView.contentInset = UIEdgeInsetsMake(0, 0, 60, 0);
     [self.view addSubview:self.tableView];
-    
-    self.noteManager = [SCRNoteManager sharedSingleton];
     
     self.noteScrollView = [[UIScrollView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height)];
     self.noteScrollView.delegate = self;
@@ -167,7 +164,9 @@
 }
 
 - (void)newNote {
-    self.currentNote = nil;
+    self.currentNoteText = nil;
+    self.currentNoteCategory = nil;
+    self.currentNoteIdentifier = nil;
     self.category = nil;
     self.requestedNoteID = NO;
     self.noteTextView.text = @"";
@@ -180,48 +179,63 @@
 }
 
 - (void)refresh {
-    if ((self.category && self.category.name) || (self.currentNote && self.currentNote.category)) {
-        NSString *token = [SCRNoteManager token];
-        AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
+    if ((self.category && self.category.name) || (self.currentNoteCategory)) {
         NSString *name = self.category.name;
-        name = name ? : self.currentNote.category;
-        NSDictionary *params = @{@"token":token, @"name":name};
-        NSString *URL = [NSString stringWithFormat:@"%@/category/notes", [SCRNoteManager apiEndpoint]];
-        [manager GET:URL parameters:params success:^(AFHTTPRequestOperation *operation, id responseObject) {
-            if ([responseObject isKindOfClass:[NSDictionary class]] && responseObject[@"error"] != nil) {
-                [[NSUserDefaults standardUserDefaults] setObject:nil forKey:@"userToken"];
-            } else {
-                [[SCRNoteManager sharedSingleton] clearNotes];
-                NSArray *jsonResponseObject = (NSArray *)responseObject;
-                for (NSDictionary *jsonCategory in jsonResponseObject) {
-                    [[SCRNoteManager sharedSingleton] addNoteWithText:jsonCategory[@"text"] WithID:jsonCategory[@"id"] WithCategory:jsonCategory[@"category"]];
-                }
-                self.categoryNotes = [[SCRNoteManager sharedSingleton] getNotes];
-                [self.tableView reloadData];
-            }
-        } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-            NSLog(@"Error: %@", error);
-        }];
+        name = name ? : self.currentNoteCategory;
+        NSFetchRequest *fetchRequest = [NSFetchRequest fetchRequestWithEntityName:@"Note"];
+        fetchRequest.sortDescriptors = [NSArray arrayWithObject:[NSSortDescriptor sortDescriptorWithKey:@"text" ascending:NO]];
+        fetchRequest.returnsObjectsAsFaults = NO;
+        fetchRequest.includesPendingChanges = NO;
+        fetchRequest.predicate = [NSPredicate predicateWithFormat:@"category == %@", name];
+        
+        _fetchedResultsController = [[NSFetchedResultsController alloc] initWithFetchRequest:fetchRequest managedObjectContext:[(id)[[UIApplication sharedApplication] delegate] managedObjectContext] sectionNameKeyPath:nil cacheName:nil];
+        _fetchedResultsController.delegate = self;
+        [_fetchedResultsController performFetch:nil];
+        [self.tableView reloadData];
+        [self refreshTitle];
     }
-    [self refreshTitle];
 }
 
 - (void)refreshTitle {
     NSString *title = nil;
     if (self.category && self.category.name) {
         title = self.category.name;
-    } else if(self.currentNote && self.currentNote.category) {
-        title = self.currentNote.category;
+    } else if(self.currentNoteCategory) {
+        title = self.currentNoteCategory;
     } else {
         title = @"Notes";
     }
     self.title = title;
 }
 
+- (void)sendNoteRequest {
+    NSString *token = [[SCRNetworkManager sharedSingleton] userToken];
+    NSDictionary *params;
+    if (self.currentNoteIdentifier) {
+        params = @{@"token":token, @"text":self.noteTextView.text, @"id":self.currentNoteIdentifier};
+    } else {
+        params = @{@"token":token, @"text":self.noteTextView.text};
+    }
+    if (!self.requestedNoteID || self.currentNoteIdentifier) {
+        AFHTTPClient *client = [[AFHTTPClient alloc] initWithBaseURL:[NSURL URLWithString:[[SCRNetworkManager sharedSingleton] apiEndpoint]]];
+        AFJSONRequestOperation *operation = [AFJSONRequestOperation JSONRequestOperationWithRequest:[client requestWithMethod:@"GET" path:@"/note/save" parameters:params]
+        success:^(NSURLRequest *request, NSHTTPURLResponse *response, id JSON) {
+            self.currentNoteIdentifier = JSON[@"id"];
+            self.currentNoteCategory = JSON[@"primaryCategory"];
+            [self refreshTitle];
+            [self refresh];
+        } failure:^(NSURLRequest *request, NSHTTPURLResponse *response, NSError *error, id JSON) {
+            NSLog(@"Error: %@", error);
+        }];
+        [operation start];
+        self.requestedNoteID = YES;
+    }
+}
+
 - (void)showNotes:(BOOL)show Animated:(BOOL)animated {
     [self refresh];
-    if (self.currentNote) {
-        self.noteTextView.text = self.currentNote.text;
+    if (self.currentNoteText) {
+        self.noteTextView.text = self.currentNoteText;
     }
 
     void (^animationBlock)() = ^void () {
@@ -256,6 +270,12 @@
     }
 }
 
+#pragma mark - NSFetchedResultsControllerDelegate
+
+- (void)controllerDidChangeContent:(NSFetchedResultsController *)controller {
+    [self.tableView reloadData];
+}
+
 #pragma mark TableView Methods
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
@@ -267,26 +287,16 @@
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    return [self.categoryNotes count];
+    return [[_fetchedResultsController fetchedObjects] count];
 }
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
-    Note *note = self.categoryNotes[indexPath.row];
-    if (note) {
-        self.currentNote = note;
-        [self showNotes:YES Animated:YES];
-        NSString *token = [SCRNoteManager token];
-        AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
-        NSDictionary *params = @{@"token":token, @"id":self.currentNote.identifier};
-        NSString *URL = [NSString stringWithFormat:@"%@/note/view", [SCRNoteManager apiEndpoint]];
-        [manager GET:URL parameters:params success:^(AFHTTPRequestOperation *operation, id responseObject) {
-            if ([responseObject isKindOfClass:[NSDictionary class]] && responseObject[@"error"] != nil) {
-                [[NSUserDefaults standardUserDefaults] setObject:nil forKey:@"userToken"];
-            }
-            } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-            NSLog(@"Error: %@", error);
-        }];
-    }
+    Note *note = [_fetchedResultsController objectAtIndexPath:indexPath];
+    self.currentNoteText = note.text;
+    self.currentNoteCategory = note.category;
+    self.currentNoteIdentifier = note.identifier;
+    [self showNotes:YES Animated:YES];
+    [[SCRNetworkManager sharedSingleton] trackViewForNote:note];
     [tableView deselectRowAtIndexPath:indexPath animated:YES];
 }
 
@@ -299,13 +309,9 @@
         cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault
                                       reuseIdentifier:cellID];
     }
-    if (self.categoryNotes && [self.categoryNotes count] > indexPath.row) {
-        Note *note = [self.categoryNotes objectAtIndex:indexPath.row];
-        if (note) {
-            cell.textLabel.text = note.text;
-            self.requestedNoteID = YES;
-        }
-    }
+    Note *note = [_fetchedResultsController objectAtIndexPath:indexPath];
+    cell.textLabel.text = note.text;
+    self.requestedNoteID = YES;
     return cell;
 }
 
@@ -320,38 +326,13 @@
     // TODO: Fix scrolling
     NSRange range = NSMakeRange(textView.text.length - 1, 1);
     [textView scrollRangeToVisible:range];
- 
-    NSString *token = [SCRNoteManager token];
-    AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
-    NSDictionary *params;
-    if (self.currentNote && self.currentNote.identifier) {
-        params = @{@"token":token, @"text":self.noteTextView.text, @"id":self.currentNote.identifier};
-    } else {
-        params = @{@"token":token, @"text":self.noteTextView.text};
+}
+
+-(BOOL)textView:(UITextView *)textView shouldChangeTextInRange:(NSRange)range replacementText:(NSString *)text {
+    if ([text isEqualToString:@"."] || [text isEqualToString:@"\n"] || [text isEqualToString:@" "]) {
+        [self sendNoteRequest];
     }
-    if (!self.requestedNoteID || self.currentNote) {
-        NSString *URL = [NSString stringWithFormat:@"%@/note/save", [SCRNoteManager apiEndpoint]];
-        [manager GET:URL parameters:params success:^(AFHTTPRequestOperation *operation, id responseObject) {
-            if ([responseObject isKindOfClass:[NSDictionary class]] && responseObject[@"error"] != nil) {
-                [[NSUserDefaults standardUserDefaults] setObject:nil forKey:@"userToken"];
-            } else {
-                [[SCRNoteManager sharedSingleton] addNoteWithText:responseObject[@"text"] WithID:responseObject[@"id"] WithCategory:responseObject[@"category"]];
-                Note *note = [[SCRNoteManager sharedSingleton] getNoteWithID:responseObject[@"id"]];
-                if (!self.currentNote && note) {
-                    self.currentNote = note;
-                }
-                [[SCRNoteManager sharedSingleton] addCategoryWithID:nil WithName:responseObject[@"primaryCategory"] WithScore:responseObject[@"score"]];
-                NoteCategory *category = [[SCRNoteManager sharedSingleton] getNoteCategoryWithName:responseObject[@"primaryCategory"]];
-                if (category) {
-                    self.category = category;
-                }
-            }
-        } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-            NSLog(@"Error: %@", error);
-        }];
-        self.requestedNoteID = YES;
-    }
-    [self refreshTitle];
+    return YES;
 }
 
 - (void)textViewDidEndEditing:(UITextView *)textView {
