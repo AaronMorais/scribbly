@@ -66,10 +66,14 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     // add search button to navigation bar
-    UIBarButtonItem *searchButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemSearch target:self action:@selector(searchButtonPressed:)];
+    UIBarButtonItem *searchButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemSearch
+                                                                                  target:self
+                                                                                  action:@selector(searchButtonPressed:)];
     self.navigationItem.leftBarButtonItem = searchButton;
     // add new note button to navigation bar
-    UIBarButtonItem *newNoteButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAdd target:self action:@selector(newNoteButtonPressed:)];
+    UIBarButtonItem *newNoteButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAdd
+                                                                                   target:self
+                                                                                   action:@selector(newNoteButtonPressed:)];
     self.navigationItem.rightBarButtonItem = newNoteButton;
     // initialize layout for collection view
     RFQuiltLayout *layout = [[RFQuiltLayout alloc] init];
@@ -89,11 +93,15 @@
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
     NSFetchRequest *fetchRequest = [NSFetchRequest fetchRequestWithEntityName:@"NoteCategory"];
-    fetchRequest.sortDescriptors = @[[NSSortDescriptor sortDescriptorWithKey:@"score" ascending:NO], [NSSortDescriptor sortDescriptorWithKey:@"name" ascending:NO]];
+    fetchRequest.sortDescriptors = @[[NSSortDescriptor sortDescriptorWithKey:@"score" ascending:NO],
+                                     [NSSortDescriptor sortDescriptorWithKey:@"name" ascending:NO]];
     fetchRequest.returnsObjectsAsFaults = NO;
     fetchRequest.includesPendingChanges = NO;
     
-    _fetchedResultsController = [[NSFetchedResultsController alloc] initWithFetchRequest:fetchRequest managedObjectContext:[(id)[[UIApplication sharedApplication] delegate] managedObjectContext] sectionNameKeyPath:nil cacheName:nil];
+    _fetchedResultsController = [[NSFetchedResultsController alloc] initWithFetchRequest:fetchRequest
+                                                                    managedObjectContext:[(id)[[UIApplication sharedApplication] delegate] managedObjectContext]
+                                                                      sectionNameKeyPath:nil
+                                                                               cacheName:nil];
     _fetchedResultsController.delegate = self;
     [_fetchedResultsController performFetch:nil];
     [self.collectionView reloadData];
@@ -190,7 +198,7 @@
             [UIColor colorWithRed:22.0f/256.0f green:160.0f/256.0f blue:133.0f/256.0f alpha:1.0f],
             [UIColor colorWithRed:44.0f/256.0f green:62.0f/256.0f blue:80.0f/256.0f alpha:1.0f]];
     }
-    uint32_t rnd = arc4random_uniform([colors count]);
+    uint32_t rnd = arc4random_uniform((int)[colors count]);
     return [colors objectAtIndex:rnd];
 }
 

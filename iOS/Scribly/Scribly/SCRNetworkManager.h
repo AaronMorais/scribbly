@@ -10,6 +10,8 @@
 
 @interface SCRNetworkManager : NSObject
 
+@property (nonatomic, retain) NSString *endpoint;
+
 + (SCRNetworkManager *)sharedSingleton;
 - (NSString *)apiEndpoint;
 - (NSString *)userToken;

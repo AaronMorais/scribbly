@@ -10,8 +10,6 @@
 #import <AFHTTPClient.h>
 #import <AFJSONRequestOperation.h>
 
-static NSString * const endpoint = @"http://162.243.28.10:1337";
-
 @implementation SCRNetworkManager
 
 + (SCRNetworkManager *)sharedSingleton {
@@ -25,8 +23,15 @@ static NSString * const endpoint = @"http://162.243.28.10:1337";
   }
 }
 
+- (id)init {
+    if (self = [super init]) {
+        _endpoint = @"http://162.243.28.10:1337";
+    }
+    return self;
+}
+
 - (NSString *)apiEndpoint {
-    return endpoint;
+    return self.endpoint;
 }
 
 - (NSString *)userToken {
@@ -37,7 +42,9 @@ static NSString * const endpoint = @"http://162.243.28.10:1337";
         NSURL *url = [NSURL URLWithString:urlString];
         NSData *data = [NSData dataWithContentsOfURL:url];
         NSError *error;
-        NSDictionary *jsonResultSet = (NSDictionary*)[NSJSONSerialization JSONObjectWithData:data options:kNilOptions error:&error];
+        NSDictionary *jsonResultSet = (NSDictionary*)[NSJSONSerialization JSONObjectWithData:data
+                                                                                     options:kNilOptions
+                                                                                       error:&error];
         token = jsonResultSet[@"token"];
         [prefs setObject:token forKey:@"userToken"];
     }
@@ -48,9 +55,9 @@ static NSString * const endpoint = @"http://162.243.28.10:1337";
     NSString *token = [self userToken];
     AFHTTPClient *client = [[AFHTTPClient alloc] initWithBaseURL:[NSURL URLWithString:[self apiEndpoint]]];
     NSDictionary *params = @{@"token":token, @"id":note.identifier};
-    AFJSONRequestOperation *operation = [AFJSONRequestOperation JSONRequestOperationWithRequest:[client requestWithMethod:@"GET" path:@"/note/view" parameters:params]
-    success:^(NSURLRequest *request, NSHTTPURLResponse *response, id JSON) {
-    } failure:^(NSURLRequest *request, NSHTTPURLResponse *response, NSError *error, id JSON) {
+    AFJSONRequestOperation *operation = [AFJSONRequestOperation JSONRequestOperationWithRequest:[client requestWithMethod:@"GET" path:@"/note/view"  parameters:params]
+    success:^(NSURLRequest *request, NSHTTPURLResponse *response, id JSON) { }
+    failure:^(NSURLRequest *request, NSHTTPURLResponse *response, NSError *error, id JSON) {
         NSLog(@"Error: %@", error);
     }];
     [operation start];

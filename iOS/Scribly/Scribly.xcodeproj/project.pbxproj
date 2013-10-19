@@ -117,9 +117,9 @@
 			isa = PBXGroup;
 			children = (
 				9304086A181333E200EBCE25 /* SCRScribblyIncrementalStore.h */,
+				93040867181333DD00EBCE25 /* SCRScribblyIncrementalStore.m */,
 				93040865181333DD00EBCE25 /* SCRScribblyAPIClient.h */,
 				93040866181333DD00EBCE25 /* SCRScribblyAPIClient.m */,
-				93040867181333DD00EBCE25 /* SCRScribblyIncrementalStore.m */,
 			);
 			name = IncrementalStore;
 			sourceTree = "<group>";
@@ -204,10 +204,10 @@
 		9367234A17F7751A00CE0209 /* Scribly */ = {
 			isa = PBXGroup;
 			children = (
-				934A8EB8180668B500A2A89D /* Models */,
-				93040862181333B300EBCE25 /* IncrementalStore */,
 				934A8EB61806689400A2A89D /* Controllers */,
 				934A8EB51806688500A2A89D /* Managers */,
+				93040862181333B300EBCE25 /* IncrementalStore */,
+				934A8EB8180668B500A2A89D /* Models */,
 				934A8EB9180668EB00A2A89D /* 3rd Party */,
 				9367234B17F7751A00CE0209 /* Supporting Files */,
 			);

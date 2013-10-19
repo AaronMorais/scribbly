@@ -46,7 +46,9 @@
     self.sDisplayController.searchResultsDataSource = self;
     self.sDisplayController.searchResultsTableView.contentInset = UIEdgeInsetsMake(0, 0, 60, 0);
     
-    self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemDone target:self action:@selector(dismissModalViewControllerAnimated:)];
+    self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemDone
+                                                                                           target:self
+                                                                                           action:@selector(dismissModalViewControllerAnimated:)];
 }
 
 #pragma mark - UITableViewDatasource Methods
@@ -83,6 +85,7 @@
 }
 
 - (void)queryForString:(NSString *)query {
+// TODO: fix me!
 //    NSString *token = [SCRNoteManager token];
 //    AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
 //    NSDictionary *params = @{@"token":token, @"query":query};

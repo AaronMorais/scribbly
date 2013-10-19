@@ -8,7 +8,7 @@
 
 #import <UIKit/UIKit.h>
 
-@interface SCRAppDelegate : UIResponder <UIApplicationDelegate>
+@interface SCRAppDelegate : UIResponder <UIApplicationDelegate, UITextViewDelegate>
 
 @property (strong, nonatomic) UIWindow *window;
 

@@ -150,10 +150,15 @@
     switch (mode) {
       case SCRNoteViewControllerModeCategory:
       case SCRNoteViewControllerModeNoteViewing:
-        self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAdd target:self action:@selector(newNote)];;
+        self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAdd
+                                                                                               target:self
+                                                                                               action:@selector(newNote)];
         break;
       case SCRNoteViewControllerModeNoteEditing:
-        self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"Done" style:UIBarButtonItemStyleDone target:self action:@selector(dismissKeyboard)];;
+        self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"Done"
+                                                                                  style:UIBarButtonItemStyleDone
+                                                                                 target:self
+                                                                                 action:@selector(dismissKeyboard)];;
         break;
     }
     _mode = mode;
@@ -188,7 +193,10 @@
         fetchRequest.includesPendingChanges = NO;
         fetchRequest.predicate = [NSPredicate predicateWithFormat:@"category == %@", name];
         
-        _fetchedResultsController = [[NSFetchedResultsController alloc] initWithFetchRequest:fetchRequest managedObjectContext:[(id)[[UIApplication sharedApplication] delegate] managedObjectContext] sectionNameKeyPath:nil cacheName:nil];
+        _fetchedResultsController = [[NSFetchedResultsController alloc] initWithFetchRequest:fetchRequest
+                                                                        managedObjectContext:[(id)[[UIApplication sharedApplication] delegate] managedObjectContext]
+                                                                          sectionNameKeyPath:nil
+                                                                                   cacheName:nil];
         _fetchedResultsController.delegate = self;
         [_fetchedResultsController performFetch:nil];
         [self.tableView reloadData];

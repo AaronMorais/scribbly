@@ -35,6 +35,8 @@
 
 #pragma mark - AFIncrementalStore
 
+// TODO: find a cleaner way to form the request without using a predicate
+// find a way to use something cleaner than the requested category string
 static NSString *requestedCategory = nil;
 
 - (NSURLRequest *)requestForFetchRequest:(NSFetchRequest *)fetchRequest

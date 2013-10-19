@@ -11,6 +11,7 @@
 #import "SCRCategoryViewController.h"
 #import <AFNetworkActivityIndicatorManager.h>
 #import "SCRScribblyIncrementalStore.h"
+#import "SCRNetworkManager.h"
 
 @implementation SCRAppDelegate
 
@@ -20,6 +21,13 @@
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
+    #ifdef DEBUG
+    NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
+    NSString *token = [prefs objectForKey:@"userToken"];
+    if (!token) {
+        [self changeEndpoint];
+    }
+    #endif
     self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
     // Override point for customization after application launch.
     self.window.rootViewController = [[UINavigationController alloc] initWithRootViewController:[[SCRCategoryViewController alloc] init]];
@@ -130,12 +138,27 @@
     return _persistentStoreCoordinator;
 }
 
+
 #pragma mark - Application's Documents directory
 
 // Returns the URL to the application's Documents directory.
 - (NSURL *)applicationDocumentsDirectory
 {
     return [[[NSFileManager defaultManager] URLsForDirectory:NSDocumentDirectory inDomains:NSUserDomainMask] lastObject];
+}
+
+- (void)changeEndpoint {
+    UIAlertView * alert = [[UIAlertView alloc] initWithTitle:@"API Endpoint" message:nil delegate:self cancelButtonTitle:@"Set" otherButtonTitles:nil];
+    alert.delegate = self;
+    alert.alertViewStyle = UIAlertViewStylePlainTextInput;
+    [alert textFieldAtIndex:0].text = [[SCRNetworkManager sharedSingleton] endpoint];
+    [alert show];
+}
+
+#pragma mark - UIAlertViewDelegate
+
+- (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
+    [[SCRNetworkManager sharedSingleton] setEndpoint:[alertView textFieldAtIndex:0].text];
 }
 
 @end
