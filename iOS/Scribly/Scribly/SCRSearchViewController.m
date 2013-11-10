@@ -30,6 +30,7 @@
     if (self) {
         self.navigationItem.title = @"Search";
         self.edgesForExtendedLayout = UIRectEdgeNone;
+        self.view.backgroundColor = [UIColor whiteColor];
         _notes = @[];
     }
     return self;

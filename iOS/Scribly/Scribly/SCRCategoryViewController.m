@@ -60,6 +60,7 @@
 - (id)init {
     self = [super init];
     if (self) {
+        self.view.backgroundColor = [UIColor whiteColor];
         self.navigationItem.title = @"Categories";
         self.edgesForExtendedLayout = UIRectEdgeNone;
         _categoryColors = [NSMutableArray array];

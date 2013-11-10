@@ -99,6 +99,7 @@
 - (id)initWithMode:(SCRNoteViewControllerMode)mode {
     self = [super init];
     if (self) {
+        self.view.backgroundColor = [UIColor whiteColor];
         self.edgesForExtendedLayout = UIRectEdgeNone;
         self.navigationItem.title = @"Notes";
         _mode = mode;
@@ -140,13 +141,10 @@
     self.noteHeaderView.backgroundColor = [UIColor whiteColor];
     self.noteHeaderView.clipsToBounds = YES;
     [self.view addSubview:self.noteHeaderView];
-    
-    [self showNotes:[self isShowingNotes] Animated:NO];
-    
-    self.view.backgroundColor = [UIColor whiteColor];
 }
 
 - (void)viewWillAppear:(BOOL)animated {
+    [self showNotes:[self isShowingNotes] Animated:NO];
     [self refresh];
 }
 
