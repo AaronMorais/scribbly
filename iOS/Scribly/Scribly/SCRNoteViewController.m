@@ -309,11 +309,12 @@
         self.isAnimating = NO;
         if (show) {
             [self.noteTextView becomeFirstResponder];
+            self.mode = SCRNoteViewControllerModeNoteEditing;
         } else {
             [self.noteTextView resignFirstResponder];
+            self.mode = SCRNoteViewControllerModeCategory;
         }
         self.noteScrollView.contentInset = UIEdgeInsetsZero;
-        self.mode = show ? SCRNoteViewControllerModeNoteViewing : SCRNoteViewControllerModeCategory;
     };
 
     if (animated) {
@@ -380,18 +381,11 @@
     // TODO: Fix scrolling
     NSRange range = NSMakeRange(textView.text.length - 1, 1);
     [textView scrollRangeToVisible:range];
-}
-
--(BOOL)textView:(UITextView *)textView shouldChangeTextInRange:(NSRange)range replacementText:(NSString *)text {
-    if ([text isEqualToString:@"."] || [text isEqualToString:@"\n"] || [text isEqualToString:@" "]) {
-        [self sendNoteRequest];
-    }
-    return YES;
+    [self sendNoteRequest];
 }
 
 - (void)textViewDidEndEditing:(UITextView *)textView {
     self.mode = SCRNoteViewControllerModeNoteViewing;
-    
     // TODO: Fix scrollview contentsize
     CGSize textHeight = [textView sizeThatFits:CGSizeMake(self.view.frame.size.width, INT_MAX)];
     self.noteTextView.frame = CGRectMake(0, 0, self.view.frame.size.width, textHeight.height);
