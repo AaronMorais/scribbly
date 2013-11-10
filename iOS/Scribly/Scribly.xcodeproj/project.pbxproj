@@ -7,9 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		93040868181333DD00EBCE25 /* SCRScribblyAPIClient.m in Sources */ = {isa = PBXBuildFile; fileRef = 93040866181333DD00EBCE25 /* SCRScribblyAPIClient.m */; };
-		93040869181333DD00EBCE25 /* SCRScribblyIncrementalStore.m in Sources */ = {isa = PBXBuildFile; fileRef = 93040867181333DD00EBCE25 /* SCRScribblyIncrementalStore.m */; };
-		9304086D1813345000EBCE25 /* Scribly.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 9304086B1813345000EBCE25 /* Scribly.xcdatamodeld */; };
+		9337C92A182F5E250016690B /* Note.m in Sources */ = {isa = PBXBuildFile; fileRef = 93C4292917F8A7BC00E9E0A4 /* Note.m */; };
 		9367234317F7751A00CE0209 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9367234217F7751A00CE0209 /* Foundation.framework */; };
 		9367234517F7751A00CE0209 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9367234417F7751A00CE0209 /* CoreGraphics.framework */; };
 		9367234717F7751A00CE0209 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9367234617F7751A00CE0209 /* UIKit.framework */; };
@@ -47,11 +45,6 @@
 
 /* Begin PBXFileReference section */
 		134C868686494E54A792A59E /* libPods.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libPods.a; sourceTree = BUILT_PRODUCTS_DIR; };
-		93040865181333DD00EBCE25 /* SCRScribblyAPIClient.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SCRScribblyAPIClient.h; sourceTree = "<group>"; };
-		93040866181333DD00EBCE25 /* SCRScribblyAPIClient.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SCRScribblyAPIClient.m; sourceTree = "<group>"; };
-		93040867181333DD00EBCE25 /* SCRScribblyIncrementalStore.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SCRScribblyIncrementalStore.m; sourceTree = "<group>"; };
-		9304086A181333E200EBCE25 /* SCRScribblyIncrementalStore.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SCRScribblyIncrementalStore.h; sourceTree = "<group>"; };
-		9304086C1813345000EBCE25 /* Scribbly.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Scribbly.xcdatamodel; sourceTree = "<group>"; };
 		9367233F17F7751A00CE0209 /* Scribly.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Scribly.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		9367234217F7751A00CE0209 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		9367234417F7751A00CE0209 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
@@ -113,17 +106,6 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		93040862181333B300EBCE25 /* IncrementalStore */ = {
-			isa = PBXGroup;
-			children = (
-				9304086A181333E200EBCE25 /* SCRScribblyIncrementalStore.h */,
-				93040867181333DD00EBCE25 /* SCRScribblyIncrementalStore.m */,
-				93040865181333DD00EBCE25 /* SCRScribblyAPIClient.h */,
-				93040866181333DD00EBCE25 /* SCRScribblyAPIClient.m */,
-			);
-			name = IncrementalStore;
-			sourceTree = "<group>";
-		};
 		934A8EB51806688500A2A89D /* Managers */ = {
 			isa = PBXGroup;
 			children = (
@@ -149,7 +131,6 @@
 		934A8EB8180668B500A2A89D /* Models */ = {
 			isa = PBXGroup;
 			children = (
-				9304086B1813345000EBCE25 /* Scribly.xcdatamodeld */,
 				9367235917F7751A00CE0209 /* Images.xcassets */,
 				93C4292817F8A7BC00E9E0A4 /* Note.h */,
 				93C4292917F8A7BC00E9E0A4 /* Note.m */,
@@ -206,7 +187,6 @@
 			children = (
 				934A8EB61806689400A2A89D /* Controllers */,
 				934A8EB51806688500A2A89D /* Managers */,
-				93040862181333B300EBCE25 /* IncrementalStore */,
 				934A8EB8180668B500A2A89D /* Models */,
 				934A8EB9180668EB00A2A89D /* 3rd Party */,
 				9367234B17F7751A00CE0209 /* Supporting Files */,
@@ -381,13 +361,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				9304086D1813345000EBCE25 /* Scribly.xcdatamodeld in Sources */,
+				9337C92A182F5E250016690B /* Note.m in Sources */,
 				936723BC17F870D600CE0209 /* SCRSearchViewController.m in Sources */,
-				93040869181333DD00EBCE25 /* SCRScribblyIncrementalStore.m in Sources */,
 				9367239417F7A06300CE0209 /* NoteCategory.m in Sources */,
 				936723A317F7ECEE00CE0209 /* SCRNetworkManager.m in Sources */,
 				936723B917F8422000CE0209 /* RFQuiltLayout.m in Sources */,
-				93040868181333DD00EBCE25 /* SCRScribblyAPIClient.m in Sources */,
 				9367235117F7751A00CE0209 /* main.m in Sources */,
 				9367235517F7751A00CE0209 /* SCRAppDelegate.m in Sources */,
 				9367239A17F7B01300CE0209 /* SCRCategoryViewController.m in Sources */,
@@ -614,19 +592,6 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
-
-/* Begin XCVersionGroup section */
-		9304086B1813345000EBCE25 /* Scribly.xcdatamodeld */ = {
-			isa = XCVersionGroup;
-			children = (
-				9304086C1813345000EBCE25 /* Scribbly.xcdatamodel */,
-			);
-			currentVersion = 9304086C1813345000EBCE25 /* Scribbly.xcdatamodel */;
-			path = Scribly.xcdatamodeld;
-			sourceTree = "<group>";
-			versionGroupType = wrapper.xcdatamodel;
-		};
-/* End XCVersionGroup section */
 	};
 	rootObject = 9367233717F7751A00CE0209 /* Project object */;
 }

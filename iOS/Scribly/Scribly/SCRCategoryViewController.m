@@ -8,7 +8,11 @@
 
 #import "SCRCategoryViewController.h"
 #import "SCRNoteViewController.h"
+#import "SCRNetworkManager.h"
 #import "NoteCategory.h"
+
+#import <AFHTTPClient.h>
+#import <AFJSONRequestOperation.h>
 
 @interface SCRCollectionViewCell : UICollectionViewCell
 
@@ -41,10 +45,10 @@
 @end
 
 
-@interface SCRCategoryViewController () <NSFetchedResultsControllerDelegate> {
-    NSFetchedResultsController *_fetchedResultsController;
-}
+@interface SCRCategoryViewController ()
 
+@property (nonatomic, retain) AFJSONRequestOperation *categoryRequestOperation;
+@property (nonatomic, retain) NSArray *noteCategories;
 @property (nonatomic, retain) NSMutableArray *categoryColors;
 @property (nonatomic, retain) UICollectionView *collectionView;
 @property (nonatomic, retain) UINavigationController *searchNavController;
@@ -92,25 +96,58 @@
 
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
-    NSFetchRequest *fetchRequest = [NSFetchRequest fetchRequestWithEntityName:@"NoteCategory"];
-    fetchRequest.sortDescriptors = @[[NSSortDescriptor sortDescriptorWithKey:@"score" ascending:NO],
-                                     [NSSortDescriptor sortDescriptorWithKey:@"name" ascending:NO]];
-    fetchRequest.returnsObjectsAsFaults = NO;
-    fetchRequest.includesPendingChanges = NO;
     
-    _fetchedResultsController = [[NSFetchedResultsController alloc] initWithFetchRequest:fetchRequest
-                                                                    managedObjectContext:[(id)[[UIApplication sharedApplication] delegate] managedObjectContext]
-                                                                      sectionNameKeyPath:nil
-                                                                               cacheName:nil];
-    _fetchedResultsController.delegate = self;
-    [_fetchedResultsController performFetch:nil];
+    NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
+    NSData *data = [prefs objectForKey:@"categories"];
+    NSArray *cachedCategories = [NSKeyedUnarchiver unarchiveObjectWithData:data];
+    self.noteCategories = cachedCategories ? : [NSArray array];
     [self.collectionView reloadData];
+    
+    NSString *token = [[SCRNetworkManager sharedSingleton] userToken];
+    AFHTTPClient *client = [[AFHTTPClient alloc] initWithBaseURL:[NSURL URLWithString:[[SCRNetworkManager sharedSingleton] apiEndpoint]]];
+    NSDictionary *params = @{@"token":token};
+    AFJSONRequestOperation *operation = [AFJSONRequestOperation JSONRequestOperationWithRequest:[client requestWithMethod:@"GET" path:@"/category/all"  parameters:params]
+    success:^(NSURLRequest *request, NSHTTPURLResponse *response, id JSON) {
+        if ([JSON isKindOfClass:[NSArray class]]) {
+            NSMutableArray *results = [NSMutableArray array];
+            for (NSDictionary *result in (NSArray *)JSON) {
+                if ([result isKindOfClass:[NSDictionary class]]) {
+                    NoteCategory *category = [[NoteCategory alloc] init];
+                    category.identifier = result[@"id"];
+                    category.name = result[@"name"];
+                    category.score = result[@"score"];
+                    [results addObject:category];
+                }
+            }
+            BOOL shouldUpdate = [self shouldUpdateCategoriesWithArray:results];
+            if (shouldUpdate) {
+                self.noteCategories = results;
+                [self.collectionView reloadData];
+                NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
+                NSData *data = [NSKeyedArchiver archivedDataWithRootObject:results];
+                [prefs setObject:data forKey:@"categories"];
+            }
+        }
+    }
+    failure:^(NSURLRequest *request, NSHTTPURLResponse *response, NSError *error, id JSON) {
+        NSLog(@"Error: %@", error);
+    }];
+    
+    [self.categoryRequestOperation cancel];
+    self.categoryRequestOperation = operation;
+    [operation start];
 }
 
-#pragma mark - NSFetchedResultsControllerDelegate
-
-- (void)controllerDidChangeContent:(NSFetchedResultsController *)controller {
-    [self.collectionView reloadData];
+- (BOOL)shouldUpdateCategoriesWithArray:(NSArray *)newCategories {
+    if ([newCategories count] != [self.noteCategories count]) {
+        return YES;
+    }
+    for (int i=0; i<[self.noteCategories count]; i++) {
+        if (![((NoteCategory *)[self.noteCategories objectAtIndex:i]) isEqual:[newCategories objectAtIndex:i]]) {
+            return YES;
+        }
+    }
+    return NO;
 }
 
 #pragma mark Button actions
@@ -139,22 +176,22 @@
 #pragma mark UICollectionViewDelegate & UICollectionViewDataSource
 
 -(NSInteger)numberOfSectionsInCollectionView:(UICollectionView *)collectionView {
-    return [[_fetchedResultsController fetchedObjects] count] > 0 ? 1 : 0;
+    return [self.noteCategories count] > 0 ? 1 : 0;
 }
 
 - (NSInteger)collectionView:(UICollectionView *)collectionView numberOfItemsInSection:(NSInteger)section {
-    return [[_fetchedResultsController fetchedObjects] count];
+    return [self.noteCategories count];
 }
 
 -(void)collectionView:(UICollectionView *)collectionView didSelectItemAtIndexPath:(NSIndexPath *)indexPath {
-    NoteCategory *noteCategory = [_fetchedResultsController objectAtIndexPath:indexPath];
+    NoteCategory *noteCategory = [self.noteCategories objectAtIndex:indexPath.row];
     [self.navigationController pushViewController:[[SCRNoteViewController alloc] initWithCategory:noteCategory] animated:YES];
 }
 
 - (UICollectionViewCell *)collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath {
     SCRCollectionViewCell *cell= (SCRCollectionViewCell *)[collectionView dequeueReusableCellWithReuseIdentifier:@"cellIdentifier" forIndexPath:indexPath];
     
-    NoteCategory *noteCategory = [_fetchedResultsController objectAtIndexPath:indexPath];
+    NoteCategory *noteCategory = [self.noteCategories objectAtIndex:indexPath.row];
     cell.descriptionLabel.text = noteCategory.name;
     
     UIColor *color;
@@ -209,7 +246,7 @@
 #pragma mark – RFQuiltLayoutDelegate
 
 - (CGSize) blockSizeForItemAtIndexPath:(NSIndexPath *)indexPath {
-    NoteCategory *noteCategory = [_fetchedResultsController objectAtIndexPath:indexPath];
+    NoteCategory *noteCategory = [self.noteCategories objectAtIndex:indexPath.row];
     if ([noteCategory.score intValue] > 60) {
         return CGSizeMake(3, 2);
     } else if ([noteCategory.score intValue] > 30) {

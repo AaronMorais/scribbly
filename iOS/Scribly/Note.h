@@ -6,11 +6,7 @@
 //
 //
 
-#import <Foundation/Foundation.h>
-#import <CoreData/CoreData.h>
-
-
-@interface Note : NSManagedObject
+@interface Note : NSObject <NSCoding>
 
 @property (nonatomic, retain) NSNumber * identifier;
 @property (nonatomic, retain) NSString * text;

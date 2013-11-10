@@ -6,7 +6,6 @@
 //  Copyright (c) 2013 Aaron Morais. All rights reserved.
 //
 
-#import <UIKit/UIKit.h>
 #import "Note.h"
 
 @protocol SCRSearchDelegate <NSObject>

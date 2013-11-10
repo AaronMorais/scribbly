@@ -8,6 +8,10 @@
 
 #import "SCRSearchViewController.h"
 #import "Note.h"
+#import "SCRNetworkManager.h"
+
+#import <AFHTTPClient.h>
+#import <AFJSONRequestOperation.h>
 
 @interface SCRSearchViewController ()
 
@@ -15,6 +19,7 @@
 @property (nonatomic, retain) UISearchBar *searchBar;
 @property (nonatomic, retain) NSArray *notes;
 @property (nonatomic, retain) UISearchDisplayController *sDisplayController;
+@property (nonatomic, retain) AFJSONRequestOperation *searchRequestOperation;
 
 @end
 
@@ -85,33 +90,34 @@
 }
 
 - (void)queryForString:(NSString *)query {
-// TODO: fix me!
-//    NSString *token = [SCRNoteManager token];
-//    AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
-//    NSDictionary *params = @{@"token":token, @"query":query};
-//    NSString *URL = [NSString stringWithFormat:@"%@/note/search", [SCRNoteManager apiEndpoint]];
-//    [manager GET:URL parameters:params success:^(AFHTTPRequestOperation *operation, id responseObject) {
-//        if ([responseObject isKindOfClass:[NSDictionary class]] && responseObject[@"error"] != nil) {
-//            [[NSUserDefaults standardUserDefaults] setObject:nil forKey:@"userToken"];
-//        } else {
-//            [[SCRNoteManager sharedSingleton] clearNotes];
-//            if ([responseObject isKindOfClass:[NSArray class]]) {
-//                NSArray *jsonResponseObject = (NSArray *)responseObject;
-//                for (NSDictionary *jsonCategory in jsonResponseObject) {
-//                    if([jsonCategory isKindOfClass:[NSDictionary class]]) {
-//                        [[SCRNoteManager sharedSingleton] addNoteWithText:jsonCategory[@"text"] WithID:jsonCategory[@"id"] WithCategory:jsonCategory[@"primaryCategory"]];
-//                    }
-//                }
-//            } else if([responseObject isKindOfClass:[NSDictionary class]]) {
-//                [[SCRNoteManager sharedSingleton] addNoteWithText:responseObject[@"text"] WithID:responseObject[@"id"] WithCategory:responseObject[@"primaryCategory"]];
-//            }
-//            self.notes = [[SCRNoteManager sharedSingleton] getNotes];
-//            [self.tableView reloadData];
-//            [self.sDisplayController.searchResultsTableView reloadData];
-//        }
-//    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-//        NSLog(@"Error: %@", error);
-//    }];
+    NSString *token = [[SCRNetworkManager sharedSingleton] userToken];
+    AFHTTPClient *client = [[AFHTTPClient alloc] initWithBaseURL:[NSURL URLWithString:[[SCRNetworkManager sharedSingleton] apiEndpoint]]];
+    NSDictionary *params = @{@"token":token, @"query":query};
+    AFJSONRequestOperation *operation = [AFJSONRequestOperation JSONRequestOperationWithRequest:[client requestWithMethod:@"GET" path:@"/note/search"  parameters:params]
+    success:^(NSURLRequest *request, NSHTTPURLResponse *response, id JSON) {
+        if ([JSON isKindOfClass:[NSArray class]]) {
+            NSMutableArray *results = [NSMutableArray array];
+            for (NSDictionary *result in (NSArray *)JSON) {
+                if ([result isKindOfClass:[NSDictionary class]]) {
+                    Note *note = [[Note alloc] init];
+                    note.identifier = result[@"id"];
+                    note.text = result[@"text"];
+                    note.category = result[@"primaryCategory"];
+                    [results addObject:note];
+                }
+            }
+            self.notes = results;
+            [self.tableView reloadData];
+            [self.sDisplayController.searchResultsTableView reloadData];
+        }
+    }
+    failure:^(NSURLRequest *request, NSHTTPURLResponse *response, NSError *error, id JSON) {
+        NSLog(@"Error: %@", error);
+    }];
+    
+    [self.searchRequestOperation cancel];
+    self.searchRequestOperation = operation;
+    [operation start];
 }
 
 #pragma mark - UISearchDisplayDelegate Methods

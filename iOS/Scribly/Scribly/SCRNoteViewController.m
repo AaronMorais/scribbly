@@ -53,10 +53,10 @@
 
 @end
 
-@interface SCRNoteViewController () <NSFetchedResultsControllerDelegate> {
-    NSFetchedResultsController *_fetchedResultsController;
-}
+@interface SCRNoteViewController ()
+
 @property (nonatomic, retain) UITableView *tableView;
+@property (nonatomic, retain) NSArray *notes;
 @property (nonatomic, retain) SCRNoteHeaderView *noteHeaderView;
 @property (nonatomic, retain) UIScrollView *noteScrollView;
 @property (nonatomic, retain) UITextView *noteTextView;
@@ -65,6 +65,9 @@
 @property (nonatomic, retain) NSString *currentNoteText;
 @property (nonatomic, retain) NSString *currentNoteCategory;
 @property (nonatomic, retain) NSNumber *currentNoteIdentifier;
+
+@property (nonatomic, retain) AFJSONRequestOperation *noteRequestOperation;
+@property (nonatomic, retain) AFJSONRequestOperation *categoryRequestOperation;
 
 @property (nonatomic, assign) BOOL isAnimating;
 @property (nonatomic, assign) BOOL requestedNoteID;
@@ -100,6 +103,7 @@
         self.navigationItem.title = @"Notes";
         _mode = mode;
         _requestedNoteID = NO;
+        _notes = [NSArray array];
     }
     return self;
 }
@@ -186,22 +190,62 @@
 - (void)refresh {
     if ((self.category && self.category.name) || (self.currentNoteCategory)) {
         NSString *name = self.category.name;
-        name = name ? : self.currentNoteCategory;
-        NSFetchRequest *fetchRequest = [NSFetchRequest fetchRequestWithEntityName:@"Note"];
-        fetchRequest.sortDescriptors = [NSArray arrayWithObject:[NSSortDescriptor sortDescriptorWithKey:@"text" ascending:NO]];
-        fetchRequest.returnsObjectsAsFaults = NO;
-        fetchRequest.includesPendingChanges = NO;
-        fetchRequest.predicate = [NSPredicate predicateWithFormat:@"category == %@", name];
+        name = name ? :self.currentNoteCategory;
         
-        _fetchedResultsController = [[NSFetchedResultsController alloc] initWithFetchRequest:fetchRequest
-                                                                        managedObjectContext:[(id)[[UIApplication sharedApplication] delegate] managedObjectContext]
-                                                                          sectionNameKeyPath:nil
-                                                                                   cacheName:nil];
-        _fetchedResultsController.delegate = self;
-        [_fetchedResultsController performFetch:nil];
+        NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
+        NSData *data = [prefs objectForKey:[NSString stringWithFormat:@"category:%@", name]];
+        NSArray *cachedNotes = [NSKeyedUnarchiver unarchiveObjectWithData:data];
+        self.notes = cachedNotes ? : [NSArray array];
         [self.tableView reloadData];
         [self refreshTitle];
+        
+        NSString *token = [[SCRNetworkManager sharedSingleton] userToken];
+        AFHTTPClient *client = [[AFHTTPClient alloc] initWithBaseURL:[NSURL URLWithString:[[SCRNetworkManager sharedSingleton] apiEndpoint]]];
+        NSDictionary *params = @{@"token":token, @"name":name};
+        AFJSONRequestOperation *operation = [AFJSONRequestOperation JSONRequestOperationWithRequest:[client requestWithMethod:@"GET" path:@"/category/notes"  parameters:params]
+        success:^(NSURLRequest *request, NSHTTPURLResponse *response, id JSON) {
+            if ([JSON isKindOfClass:[NSArray class]]) {
+                NSMutableArray *results = [NSMutableArray array];
+                for (NSDictionary *result in (NSArray *)JSON) {
+                    if ([result isKindOfClass:[NSDictionary class]]) {
+                        Note *note = [[Note alloc] init];
+                        note.identifier = result[@"id"];
+                        note.text = result[@"text"];
+                        note.category = name;
+                        [results addObject:note];
+                    }
+                }
+                BOOL shouldUpdate = [self shouldUpdateCategoriesWithArray:results];
+                if (shouldUpdate) {
+                    self.notes = results;
+                    [self.tableView reloadData];
+                    [self refreshTitle];
+                    NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
+                    NSData *data = [NSKeyedArchiver archivedDataWithRootObject:results];
+                    [prefs setObject:data forKey:[NSString stringWithFormat:@"category:%@", name]];
+                }
+            }
+        }
+        failure:^(NSURLRequest *request, NSHTTPURLResponse *response, NSError *error, id JSON) {
+            NSLog(@"Error: %@", error);
+        }];
+        
+        [self.categoryRequestOperation cancel];
+        self.categoryRequestOperation = operation;
+        [operation start];
     }
+}
+
+- (BOOL)shouldUpdateCategoriesWithArray:(NSArray *)newNotes {
+    if ([newNotes count] != [self.notes count]) {
+        return YES;
+    }
+    for (int i=0; i<[self.notes count]; i++) {
+        if (![((Note *)[self.notes objectAtIndex:i]) isEqual:[newNotes objectAtIndex:i]]) {
+            return YES;
+        }
+    }
+    return NO;
 }
 
 - (void)refreshTitle {
@@ -235,7 +279,11 @@
         } failure:^(NSURLRequest *request, NSHTTPURLResponse *response, NSError *error, id JSON) {
             NSLog(@"Error: %@", error);
         }];
+        
+        [self.noteRequestOperation cancel];
+        self.noteRequestOperation = operation;
         [operation start];
+        
         self.requestedNoteID = YES;
     }
 }
@@ -295,11 +343,11 @@
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    return [[_fetchedResultsController fetchedObjects] count];
+    return [self.notes count];
 }
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
-    Note *note = [_fetchedResultsController objectAtIndexPath:indexPath];
+    Note *note = [self.notes objectAtIndex:indexPath.row];
     self.currentNoteText = note.text;
     self.currentNoteCategory = note.category;
     self.currentNoteIdentifier = note.identifier;
@@ -317,7 +365,7 @@
         cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault
                                       reuseIdentifier:cellID];
     }
-    Note *note = [_fetchedResultsController objectAtIndexPath:indexPath];
+    Note *note = [self.notes objectAtIndex:indexPath.row];
     cell.textLabel.text = note.text;
     self.requestedNoteID = YES;
     return cell;
